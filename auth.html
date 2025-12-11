@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход / Регистрация - Друзья на лапках</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="custom-select.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1 class="logo"><img src="logo.png" alt="Друзья на лапках"> Друзья на лапках</h1>
+            <nav>
+                <a href="index.html" class="nav-link">Главная</a>
+                <a href="take-pet.html" class="nav-link">Взять питомца</a>
+                <a href="emergency.html" class="nav-link">Экстренные ситуации</a>
+                <a href="help.html" class="nav-link">Помощь</a>
+                <a href="health.html" class="nav-link">Здоровье</a>
+                <a href="auth.html" class="nav-link active">Вход</a>
+                <a href="profile.html" class="nav-link">Профиль</a>
+                <a href="shelter-dashboard.html" class="nav-link" style="display: none;">Панель передержки</a>
+                <a href="admin.html" class="nav-link" style="display: none;">Админ-панель</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="page-header">
+            <div class="container">
+                <h2>Вход / Регистрация</h2>
+                <p>Войдите в систему или зарегистрируйтесь</p>
+            </div>
+        </section>
+
+        <section class="content">
+            <div class="container">
+                <div class="auth-container">
+                    <!-- Вкладки: Вход / Регистрация -->
+                    <div class="auth-tabs">
+                        <button class="auth-tab-btn active" data-tab="login">Вход</button>
+                        <button class="auth-tab-btn" data-tab="register">Регистрация</button>
+                    </div>
+
+                    <!-- Форма входа -->
+                    <div id="loginForm" class="auth-form-section active">
+                        <div class="auth-form">
+                            <h3>Вход в систему</h3>
+                            <form id="loginFormElement">
+                                <div class="form-group">
+                                    <label for="loginIdentifier">Телефон *</label>
+                                    <input type="tel" id="loginIdentifier" name="identifier" required placeholder="+7 (___) ___-__-__">
+                                </div>
+                                <div class="form-group">
+                                    <label for="loginPassword">Пароль *</label>
+                                    <input type="password" id="loginPassword" name="password" required placeholder="Введите пароль">
+                                </div>
+                                <button type="submit" class="submit-btn">Войти</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Форма регистрации -->
+                    <div id="registerForm" class="auth-form-section">
+                        <div class="auth-form">
+                            <h3>Регистрация</h3>
+                            <div class="user-type-selector">
+                                <label class="user-type-option">
+                                    <input type="radio" name="userType" value="user" checked>
+                                    <div class="user-type-card">
+                                        <div class="user-type-icon">👤</div>
+                                        <div class="user-type-label">Обычный пользователь</div>
+                                    </div>
+                                </label>
+                                <label class="user-type-option">
+                                    <input type="radio" name="userType" value="shelter">
+                                    <div class="user-type-card">
+                                        <div class="user-type-icon">🏠</div>
+                                        <div class="user-type-label">Передержка</div>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <!-- Форма для обычного пользователя -->
+                            <form id="registerUserForm" class="register-form">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="regUserName">Имя *</label>
+                                        <input type="text" id="regUserName" name="name" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="regUserSurname">Фамилия *</label>
+                                        <input type="text" id="regUserSurname" name="surname" required>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="regUserPhone">Телефон *</label>
+                                    <input type="tel" id="regUserPhone" name="phone" required placeholder="+7 (___) ___-__-__">
+                                </div>
+                                <div class="form-group">
+                                    <label for="regUserTelegram">Telegram *</label>
+                                    <input type="text" id="regUserTelegram" name="telegram" required placeholder="@username">
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="regUserPassword">Пароль *</label>
+                                        <input type="password" id="regUserPassword" name="password" required minlength="6">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="regUserPasswordConfirm">Подтвердите пароль *</label>
+                                        <input type="password" id="regUserPasswordConfirm" name="passwordConfirm" required>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="agreement-checkbox">
+                                        <input type="checkbox" id="regUserAgreement" name="agreement" required>
+                                        <span>Я согласен с <a href="privacy-policy.html" target="_blank">политикой конфиденциальности</a> *</span>
+                                    </label>
+                                </div>
+                                <button type="submit" class="submit-btn">Зарегистрироваться</button>
+                            </form>
+
+                            <!-- Форма для передержки -->
+                            <form id="registerShelterForm" class="register-form" style="display: none;">
+                                <div class="form-group">
+                                    <label for="regShelterName">Название передержки *</label>
+                                    <input type="text" id="regShelterName" name="name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="regShelterAuthorizedPerson">ФИО уполномоченного лица *</label>
+                                    <input type="text" id="regShelterAuthorizedPerson" name="authorizedPerson" required placeholder="Иванов Иван Иванович">
+                                </div>
+                                <div class="form-group">
+                                    <label for="regShelterPhone">Телефон *</label>
+                                    <input type="tel" id="regShelterPhone" name="phone" required placeholder="+7 (___) ___-__-__">
+                                </div>
+                                <div class="form-group">
+                                    <label for="regShelterAddress">Адрес местонахождения *</label>
+                                    <input type="text" id="regShelterAddress" name="address" required placeholder="Забайкальский край, г. Чита, ул. ...">
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="regShelterViber">Viber</label>
+                                        <input type="text" id="regShelterViber" name="viber" placeholder="@username или номер">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="regShelterTelegram">Telegram</label>
+                                        <input type="text" id="regShelterTelegram" name="telegram" placeholder="@username">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="regShelterWebsite">Сайт</label>
+                                    <input type="url" id="regShelterWebsite" name="website" placeholder="https://example.com">
+                                </div>
+                                <div class="form-group">
+                                    <label for="regShelterEmail">Email</label>
+                                    <input type="email" id="regShelterEmail" name="email" placeholder="Необязательно">
+                                    <small style="color: #666; font-size: 0.85rem; display: block; margin-top: 0.25rem;">Email необязателен. Укажите, если нужен вход по email</small>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="regShelterPassword">Пароль *</label>
+                                        <input type="password" id="regShelterPassword" name="password" required minlength="6">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="regShelterPasswordConfirm">Подтвердите пароль *</label>
+                                        <input type="password" id="regShelterPasswordConfirm" name="passwordConfirm" required>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="agreement-checkbox">
+                                        <input type="checkbox" id="regShelterAgreement" name="agreement" required>
+                                        <span>Я согласен с <a href="privacy-policy.html" target="_blank">политикой конфиденциальности</a> *</span>
+                                    </label>
+                                </div>
+                                <button type="submit" class="submit-btn">Зарегистрировать передержку</button>
+                            </form>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Информация о текущем пользователе -->
+                <div id="userInfo" class="user-info" style="display: none;">
+                    <h3>Вы вошли как:</h3>
+                    <div id="userInfoContent"></div>
+                    <button id="logoutBtn" class="submit-btn" style="background: #f5576c; margin-top: 1rem;">Выйти</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Друзья на лапках. Все права защищены.</p>
+            <p style="margin-top: 0.5rem;">
+                <a href="privacy-policy.html" style="color: #fff; text-decoration: underline; margin-right: 1rem;">Политика конфиденциальности</a>
+                <a href="agreement.html" style="color: #fff; text-decoration: underline; margin-right: 1rem;">Согласие на получение рекламной информации</a>
+                <a href="donation-offer.html" style="color: #fff; text-decoration: underline;">Публичная оферта о заключении договора пожертвования</a>
+            </p>
+        </div>
+    </footer>
+
+    <script src="api-client.js"></script>
+    <script src="auth-data.js"></script>
+    <script src="notifications.js"></script>
+    <script src="phone-mask.js"></script>
+    <script src="custom-select.js"></script>
+    <script src="auth-scripts.js"></script>
+    <script src="navigation.js"></script>
+</body>
+</html>
+
+

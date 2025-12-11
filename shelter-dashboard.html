@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель передержки - Друзья на лапках</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="custom-select.css">
+    <style>
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .dashboard-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid #e0e0e0;
+            flex-wrap: wrap;
+        }
+
+        .dashboard-tab {
+            background: none;
+            border: none;
+            padding: 1rem 2rem;
+            cursor: pointer;
+            font-size: 1rem;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            position: relative;
+            top: 2px;
+        }
+
+        .dashboard-tab:hover {
+            color: #667eea;
+        }
+
+        .dashboard-tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            font-weight: bold;
+        }
+
+        .dashboard-tab-content {
+            display: none;
+        }
+
+        .dashboard-tab-content.active {
+            display: block;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            margin: 0 0 0.5rem 0;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .stat-card .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .pets-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .pets-section-header h3 {
+            margin: 0;
+        }
+
+        .admin-tab-btn {
+            background: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+            color: #666;
+            border-radius: 8px;
+            transition: all 0.3s;
+            margin-right: 0.5rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .admin-tab-btn:hover {
+            background: #e8e8e8;
+            color: #667eea;
+            border-color: #667eea;
+        }
+
+        .admin-tab-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+            font-weight: bold;
+        }
+
+        .admin-tab-btn.active:hover {
+            background: linear-gradient(135deg, #5568d3 0%, #6a3d8f 100%);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1 class="logo"><img src="logo.png" alt="Друзья на лапках"> Друзья на лапках</h1>
+            <nav>
+                <a href="index.html" class="nav-link">Главная</a>
+                <a href="take-pet.html" class="nav-link">Взять питомца</a>
+                <a href="emergency.html" class="nav-link">Экстренные ситуации</a>
+                <a href="help.html" class="nav-link">Помощь</a>
+                <a href="health.html" class="nav-link">Здоровье</a>
+                <a href="auth.html" class="nav-link">Вход</a>
+                <a href="profile.html" class="nav-link">Профиль</a>
+                <a href="shelter-dashboard.html" class="nav-link active">Панель передержки</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="page-header">
+            <div class="container">
+                <h2>Панель передержки</h2>
+                <p id="shelterName">Управление животными и заявками</p>
+            </div>
+        </section>
+
+        <section class="content">
+            <div class="dashboard-container">
+                <!-- Статистика -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Размещено животных</h3>
+                        <p class="stat-value" id="statPlaced">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Отдано животных</h3>
+                        <p class="stat-value" id="statAdopted">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Новых заявок</h3>
+                        <p class="stat-value" id="statNewApplications">0</p>
+                    </div>
+                </div>
+
+                <!-- Вкладки -->
+                <div class="dashboard-tabs">
+                    <button class="dashboard-tab active" data-tab="add-pet">➕ Разместить животное</button>
+                    <button class="dashboard-tab" data-tab="applications">📝 Заявки</button>
+                    <button class="dashboard-tab" data-tab="my-pets">🐾 Мои размещенные</button>
+                    <button class="dashboard-tab" data-tab="adopted">✅ Отданные</button>
+                </div>
+
+                <!-- Вкладка: Разместить животное -->
+                <div id="add-pet-tab" class="dashboard-tab-content active">
+                    <div class="form-container">
+                        <h3>Разместить животное</h3>
+                        <form id="addPetForm" class="pet-form">
+                            <div class="form-group">
+                                <label for="petName">Имя животного *</label>
+                                <input type="text" id="petName" name="name" required>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="petType">Тип животного *</label>
+                                    <select id="petType" name="type" required>
+                                        <option value="">Выберите</option>
+                                        <option value="dog">Собака</option>
+                                        <option value="cat">Кошка</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="petBreed">Порода *</label>
+                                    <input type="text" id="petBreed" name="breed" required placeholder="Например: Немецкая овчарка">
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="petAgeYears">Возраст: Годы *</label>
+                                    <input type="number" id="petAgeYears" name="ageYears" min="0" max="30" value="0" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="petAgeMonths">Месяцы *</label>
+                                    <input type="number" id="petAgeMonths" name="ageMonths" min="0" max="11" value="0" required>
+                                    <small style="color: #666; font-size: 0.85rem; display: block; margin-top: 0.25rem;">От 0 до 11 месяцев</small>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="petGender">Пол *</label>
+                                    <select id="petGender" name="gender" required>
+                                        <option value="">Выберите</option>
+                                        <option value="male">Мальчик</option>
+                                        <option value="female">Девочка</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="petSize">Размер *</label>
+                                    <select id="petSize" name="size" required>
+                                        <option value="">Выберите</option>
+                                        <option value="small">Маленький</option>
+                                        <option value="medium">Средний</option>
+                                        <option value="large">Большой</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="petColor">Цвет *</label>
+                                <input type="text" id="petColor" name="color" required placeholder="Например: Рыжий с белыми пятнами">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="petCharacter">Характер *</label>
+                                <textarea id="petCharacter" name="character" required rows="3" placeholder="Опишите характер животного"></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="petDescription">Описание *</label>
+                                <textarea id="petDescription" name="description" required rows="4" placeholder="Подробное описание животного"></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="petComments">Комментарии (только для передержки)</label>
+                                <textarea id="petComments" name="comments" rows="3" placeholder="Внутренние комментарии, заметки о животном"></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="petFoundLocation">Где нашли (только для передержки)</label>
+                                <input type="text" id="petFoundLocation" name="foundLocation" placeholder="Место, где было найдено животное">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="petPhotos">Фотографии (можно несколько)</label>
+                                <input type="file" id="petPhotos" name="photos" multiple accept="image/*">
+                                <div id="photoPreview" class="photo-preview"></div>
+                            </div>
+                            
+                            <button type="submit" class="btn-primary">Разместить животное</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Вкладка: Заявки -->
+                <div id="applications-tab" class="dashboard-tab-content">
+                    <div class="pets-section-header">
+                        <h3>Управление заявками</h3>
+                    </div>
+                    <div id="applicationsContainer">
+                        <p style="text-align: center; padding: 2rem;">Загрузка заявок...</p>
+                    </div>
+                </div>
+
+                <!-- Вкладка: Мои размещенные -->
+                <div id="my-pets-tab" class="dashboard-tab-content">
+                    <div class="pets-section-header">
+                        <h3>Мои размещенные животные</h3>
+                    </div>
+                    <div class="pets-grid" id="myPetsGrid">
+                        <p style="text-align: center; padding: 2rem;">Загрузка животных...</p>
+                    </div>
+                </div>
+
+                <!-- Вкладка: Отданные -->
+                <div id="adopted-tab" class="dashboard-tab-content">
+                    <div class="pets-section-header">
+                        <h3>Отданные животные</h3>
+                        <div class="filter-group" style="max-width: 240px; width: 100%;">
+                            <label for="adoptedSterilizationFilter">Стерилизация:</label>
+                            <select id="adoptedSterilizationFilter" class="filter-select">
+                                <option value="all">Все</option>
+                                <option value="sterilized">Стерелизована</option>
+                                <option value="will_sterilize">Сами стерилизуют</option>
+                                <option value="under_sterilization">Под стерилизацию</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="pets-grid" id="adoptedPetsGrid">
+                        <p style="text-align: center; padding: 2rem;">Загрузка животных...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Друзья на лапках. Все права защищены.</p>
+            <p style="margin-top: 0.5rem;">
+                <a href="privacy-policy.html" style="color: #fff; text-decoration: underline; margin-right: 1rem;">Политика конфиденциальности</a>
+                <a href="agreement.html" style="color: #fff; text-decoration: underline; margin-right: 1rem;">Согласие на получение рекламной информации</a>
+                <a href="donation-offer.html" style="color: #fff; text-decoration: underline;">Публичная оферта о заключении договора пожертвования</a>
+            </p>
+        </div>
+    </footer>
+
+    <script src="api-client.js"></script>
+    <script src="auth-data.js"></script>
+    <script src="applications-data.js"></script>
+    <script src="notifications.js"></script>
+    <script src="custom-select.js"></script>
+    <script src="shelter-dashboard.js"></script>
+    <script src="navigation.js"></script>
+</body>
+</html>
+

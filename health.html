@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Здоровье и уход - Друзья на лапках</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="custom-select.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1 class="logo"><img src="logo.png" alt="Друзья на лапках"> Друзья на лапках</h1>
+            <nav>
+                <a href="index.html" class="nav-link">Главная</a>
+                <a href="take-pet.html" class="nav-link">Взять питомца</a>
+                <a href="emergency.html" class="nav-link">Экстренные ситуации</a>
+                <a href="help.html" class="nav-link">Помощь</a>
+                <a href="health.html" class="nav-link active">Здоровье</a>
+                <a href="auth.html" class="nav-link">Вход</a>
+                <a href="profile.html" class="nav-link">Профиль</a>
+                <a href="shelter-dashboard.html" class="nav-link" style="display: none;">Панель передержки</a>
+                <a href="admin.html" class="nav-link" style="display: none;">Админ-панель</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="page-header">
+            <div class="container">
+                <h2>Здоровье и уход за питомцем</h2>
+                <p>Полезная информация о здоровье, уходе и содержании ваших питомцев в г. Чита</p>
+            </div>
+        </section>
+
+        <section class="content">
+            <div class="container">
+                <!-- Навигация по разделам -->
+                <div class="help-tabs">
+                    <button class="help-tab-btn active" data-tab="shops">🛒 Зоомагазины</button>
+                    <button class="help-tab-btn" data-tab="advice">💡 Советы ветеринаров</button>
+                    <button class="help-tab-btn" data-tab="news">📰 Новости госветслужбы</button>
+                </div>
+
+                <!-- Раздел: Зоомагазины -->
+                <div id="shops" class="help-section active">
+                    <div class="section-header">
+                        <h3>🛒 Зоомагазины</h3>
+                        <p>Найдите зоомагазины в г. Чита для покупки корма и аксессуаров для ваших питомцев</p>
+                    </div>
+
+                    <div class="shops-content">
+                        <div id="shopsList" class="shops-list"></div>
+                    </div>
+                </div>
+
+                <!-- Раздел: Советы ветеринаров -->
+                <div id="advice" class="help-section">
+                    <div class="section-header">
+                        <h3>💡 Советы ветеринаров</h3>
+                        <p>Полезные советы и рекомендации от профессиональных ветеринаров</p>
+                    </div>
+
+                    <div class="advice-content">
+                        <div id="adviceList" class="advice-list"></div>
+                    </div>
+                </div>
+
+                <!-- Раздел: Новости госветслужбы -->
+                <div id="news" class="help-section">
+                    <div class="section-header">
+                        <h3>📰 Новости госветслужбы</h3>
+                        <p>Актуальные новости и объявления от государственной ветеринарной службы Забайкальского края</p>
+                    </div>
+
+                    <div class="news-content">
+                        <div id="newsList" class="news-list"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Друзья на лапках. Все права защищены.</p>
+            <p style="margin-top: 0.5rem;">
+                <a href="privacy-policy.html" style="color: #fff; text-decoration: underline; margin-right: 1rem;">Политика конфиденциальности</a>
+                <a href="agreement.html" style="color: #fff; text-decoration: underline; margin-right: 1rem;">Согласие на получение рекламной информации</a>
+                <a href="donation-offer.html" style="color: #fff; text-decoration: underline;">Публичная оферта о заключении договора пожертвования</a>
+            </p>
+        </div>
+    </footer>
+
+    <script src="api-client.js"></script>
+    <script src="health-data.js"></script>
+    <script src="health-scripts.js"></script>
+    <script src="auth-data.js"></script>
+    <script src="notifications.js"></script>
+    <script src="custom-select.js"></script>
+    <script src="navigation.js"></script>
+</body>
+</html>

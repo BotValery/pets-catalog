@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Помощь бездомным животным - Друзья на лапках</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="custom-select.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1 class="logo"><img src="logo.png" alt="Друзья на лапках"> Друзья на лапках</h1>
+            <nav>
+                <a href="index.html" class="nav-link">Главная</a>
+                <a href="take-pet.html" class="nav-link">Взять питомца</a>
+                <a href="emergency.html" class="nav-link">Экстренные ситуации</a>
+                <a href="help.html" class="nav-link active">Помощь</a>
+                <a href="health.html" class="nav-link">Здоровье</a>
+                <a href="auth.html" class="nav-link">Вход</a>
+                <a href="profile.html" class="nav-link">Профиль</a>
+                <a href="shelter-dashboard.html" class="nav-link" style="display: none;">Панель передержки</a>
+                <a href="admin.html" class="nav-link" style="display: none;">Админ-панель</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="page-header">
+            <div class="container">
+                <h2>Помощь бездомным животным</h2>
+                <p>Узнайте, как вы можете помочь бездомным животным в г. Чита</p>
+            </div>
+        </section>
+
+        <section class="content">
+            <div class="container">
+                <!-- Навигация по разделам -->
+                <div class="help-tabs">
+                    <button class="help-tab-btn active" data-tab="donations">💝 Пожертвования</button>
+                    <button class="help-tab-btn" data-tab="volunteer">🤝 Стать волонтером</button>
+                    <button class="help-tab-btn" data-tab="clinics">🏥 Ветклиники</button>
+
+                </div>
+
+                <!-- Раздел: Пожертвования -->
+                <div id="donations" class="help-section active">
+                    <div class="section-header">
+                        <h3>💝 Пожертвования</h3>
+                        <p>Ваша поддержка помогает нам заботиться о бездомных животных</p>
+                    </div>
+                    
+                    <div class="donations-content">
+                        <div class="donation-info">
+                            <h4>Куда идут ваши пожертвования:</h4>
+                            <ul class="donation-list">
+                                <li>🐕 Корм и медикаменты для животных</li>
+                                <li>🏥 Ветеринарная помощь</li>
+                                <li>🏠 Содержание передержек</li>
+                                <li>🚗 Транспортировка животных</li>
+                                <li>📢 Информационная поддержка</li>
+                            </ul>
+                        </div>
+
+                        <div class="donation-form-section">
+                            <h4>Сделать пожертвование</h4>
+                            <form id="donationForm" class="donation-form">
+                                <div class="form-group">
+                                    <label for="donationAmount">Сумма пожертвования (руб.) *</label>
+                                    <div class="amount-buttons">
+                                        <button type="button" class="amount-btn" data-amount="500">500 ₽</button>
+                                        <button type="button" class="amount-btn" data-amount="1000">1000 ₽</button>
+                                        <button type="button" class="amount-btn" data-amount="2000">2000 ₽</button>
+                                        <button type="button" class="amount-btn" data-amount="5000">5000 ₽</button>
+                                    </div>
+                                    <input type="number" id="donationAmount" name="amount" min="100" required placeholder="Или введите свою сумму">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="donationName">Ваше имя *</label>
+                                    <input type="text" id="donationName" name="name" required placeholder="Как к вам обращаться">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="donationEmail">Email</label>
+                                    <input type="email" id="donationEmail" name="email" placeholder="Для отправки чека">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="donationMessage">Сообщение (необязательно)</label>
+                                    <textarea id="donationMessage" name="message" rows="3" placeholder="Ваше пожелание или комментарий"></textarea>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>
+                                        <input type="checkbox" name="anonymous" id="donationAnonymous">
+                                        Сделать пожертвование анонимно
+                                    </label>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>
+                                        <input type="checkbox" name="acceptOffer" id="acceptOffer" required>
+                                        Я согласен с <a href="donation-offer.html" target="_blank">публичной офертой о заключении договора пожертвования</a> *
+                                    </label>
+                                </div>
+
+                                <button type="submit" class="submit-btn">Пожертвовать</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Раздел: Стать волонтером -->
+                <div id="volunteer" class="help-section">
+                    <div class="section-header">
+                        <h3>🤝 Стать волонтером</h3>
+                        <p>Присоединяйтесь к нашей команде и помогайте животным вместе с нами</p>
+                    </div>
+
+                    <div class="volunteer-content">
+                        <div class="volunteer-info">
+                            <h4>Как вы можете помочь как волонтер:</h4>
+                            <div class="volunteer-options">
+                                <div class="volunteer-option">
+                                    <div class="option-icon">🐕</div>
+                                    <h5>Выгул животных</h5>
+                                    <p>Регулярные прогулки с собаками из передержки</p>
+                                </div>
+                                <div class="volunteer-option">
+                                    <div class="option-icon">🏠</div>
+                                    <h5>Временная передержка</h5>
+                                    <p>Взять животное к себе домой на время</p>
+                                </div>
+                                <div class="volunteer-option">
+                                    <div class="option-icon">🧹</div>
+                                    <h5>Уборка в передержке</h5>
+                                    <p>Помощь в поддержании чистоты</p>
+                                </div>
+                                <div class="volunteer-option">
+                                    <div class="option-icon">📢</div>
+                                    <h5>Помощь в соцсетях</h5>
+                                    <p>Распространение информации о животных</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="volunteer-form-section">
+                            <h4>Заполните форму для регистрации</h4>
+                            <form id="volunteerForm" class="volunteer-form">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="volunteerName">Имя *</label>
+                                        <input type="text" id="volunteerName" name="name" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="volunteerAge">Возраст *</label>
+                                        <input type="number" id="volunteerAge" name="age" min="18" required>
+                                    </div>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="volunteerPhone">Телефон *</label>
+                                        <input type="tel" id="volunteerPhone" name="phone" required placeholder="+7 (___) ___-__-__">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="volunteerEmail">Email *</label>
+                                        <input type="email" id="volunteerEmail" name="email" required>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="volunteerCity">Город *</label>
+                                    <input type="text" id="volunteerCity" name="city" required placeholder="г. Чита" value="г. Чита">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="volunteerActivities">Чем вы хотели бы помочь? *</label>
+                                    <div class="checkbox-group">
+                                        <label><input type="checkbox" name="activities" value="walking"> Выгул животных</label>
+                                        <label><input type="checkbox" name="activities" value="foster"> Временная передержка</label>
+                                        <label><input type="checkbox" name="activities" value="cleaning"> Уборка в передержке</label>
+                                        <label><input type="checkbox" name="activities" value="social"> Помощь в соцсетях</label>
+                                        <label><input type="checkbox" name="activities" value="events"> Организация мероприятий</label>
+                                        <label><input type="checkbox" name="activities" value="other"> Другое</label>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="volunteerExperience">Опыт работы с животными</label>
+                                    <textarea id="volunteerExperience" name="experience" rows="3" placeholder="Расскажите о вашем опыте"></textarea>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="volunteerAvailability">Доступность</label>
+                                    <textarea id="volunteerAvailability" name="availability" rows="2" placeholder="Когда вы можете помогать? (дни недели, время)"></textarea>
+                                </div>
+
+                                <button type="submit" class="submit-btn">Стать волонтером</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Раздел: Ветклиники -->
+                <div id="clinics" class="help-section">
+                    <div class="section-header">
+                        <h3>🏥 Ветклиники</h3>
+                        <p>Найдите ветеринарную клинику в г. Чита для вашего питомца</p>
+                    </div>
+
+                    <div class="clinics-content">
+                        <div id="clinicsList" class="clinics-list"></div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Друзья на лапках. Все права защищены.</p>
+            <p style="margin-top: 0.5rem;">
+                <a href="privacy-policy.html" style="color: #fff; text-decoration: underline; margin-right: 1rem;">Политика конфиденциальности</a>
+                <a href="agreement.html" style="color: #fff; text-decoration: underline; margin-right: 1rem;">Согласие на получение рекламной информации</a>
+                <a href="donation-offer.html" style="color: #fff; text-decoration: underline;">Публичная оферта о заключении договора пожертвования</a>
+            </p>
+        </div>
+    </footer>
+
+    <script src="api-client.js"></script>
+    <script src="auth-data.js"></script>
+    <script src="notifications.js"></script>
+    <script src="custom-select.js"></script>
+    <script src="help-scripts.js"></script>
+    <script src="navigation.js"></script>
+</body>
+</html>

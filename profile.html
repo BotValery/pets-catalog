@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Профиль - Друзья на лапках</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="custom-select.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1 class="logo"><img src="logo.png" alt="Друзья на лапках"> Друзья на лапках</h1>
+            <nav>
+                <a href="index.html" class="nav-link">Главная</a>
+                <a href="take-pet.html" class="nav-link">Взять питомца</a>
+                <a href="emergency.html" class="nav-link">Экстренные ситуации</a>
+                <a href="help.html" class="nav-link">Помощь</a>
+                <a href="health.html" class="nav-link">Здоровье</a>
+                <a href="auth.html" class="nav-link">Вход</a>
+                <a href="profile.html" class="nav-link active">Профиль</a>
+                <a href="shelter-dashboard.html" class="nav-link" style="display: none;">Панель передержки</a>
+                <a href="admin.html" class="nav-link" style="display: none;">Админ-панель</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="page-header">
+            <div class="container">
+                <h2>Мой профиль</h2>
+                <p>Управляйте своей информацией и настройками</p>
+            </div>
+        </section>
+
+        <section class="content">
+            <div class="container">
+                <!-- Сообщение для неавторизованных пользователей -->
+                <div id="notAuthorized" class="profile-message" style="display: none;">
+                    <div class="message-box">
+                        <h3>Вы не авторизованы</h3>
+                        <p>Пожалуйста, войдите в систему, чтобы просмотреть свой профиль.</p>
+                        <a href="auth.html" class="btn-primary">Войти</a>
+                    </div>
+                </div>
+
+                <!-- Профиль пользователя -->
+                <div id="userProfile" class="profile-section" style="display: none;">
+                    <div class="profile-card">
+                        <div class="profile-header">
+                            <div class="profile-avatar">👤</div>
+                            <h3>Профиль пользователя</h3>
+                        </div>
+                        <form id="userProfileForm" class="profile-form">
+                            <div class="form-group">
+                                <label for="userName">Имя *</label>
+                                <input type="text" id="userName" name="name" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="userTelegram">Telegram *</label>
+                                <input type="text" id="userTelegram" name="telegram" required placeholder="@username">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="userPhone">Телефон *</label>
+                                <input type="tel" id="userPhone" name="phone" required placeholder="+7 (XXX) XXX-XX-XX">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="userPassword">Новый пароль</label>
+                                <input type="password" id="userPassword" name="password" placeholder="Оставьте пустым, чтобы не менять">
+                                <small class="form-hint">Минимум 6 символов</small>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="userPasswordConfirm">Подтвердите новый пароль</label>
+                                <input type="password" id="userPasswordConfirm" name="passwordConfirm" placeholder="Подтвердите новый пароль">
+                            </div>
+                            
+                            <div class="form-actions">
+                                <button type="submit" class="btn-primary">Сохранить изменения</button>
+                                <button type="button" id="userLogoutBtn" class="btn-secondary">Выйти</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Профиль передержки -->
+                <div id="shelterProfile" class="profile-section" style="display: none;">
+                    <div class="profile-card">
+                        <div class="profile-header">
+                            <div class="profile-avatar">🏠</div>
+                            <h3>Профиль передержки</h3>
+                        </div>
+                        <form id="shelterProfileForm" class="profile-form">
+                            <div class="form-group">
+                                <label for="shelterName">Название передержки *</label>
+                                <input type="text" id="shelterName" name="shelterName" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="shelterEmail">Email *</label>
+                                <input type="email" id="shelterEmail" name="email" required readonly>
+                                <small class="form-hint">Email нельзя изменить</small>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="shelterAddress">Адрес *</label>
+                                <input type="text" id="shelterAddress" name="address" required placeholder="г. Чита, ул. Примерная, д. 1">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="shelterPhone">Телефон *</label>
+                                <input type="tel" id="shelterPhone" name="phone" required placeholder="+7 (3022) XXX-XX-XX">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="shelterCapacity">Вместимость</label>
+                                <input type="text" id="shelterCapacity" name="capacity" placeholder="Например: 50 животных">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="shelterContactPerson">Контактное лицо *</label>
+                                <input type="text" id="shelterContactPerson" name="contactPerson" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="shelterDescription">Описание</label>
+                                <textarea id="shelterDescription" name="description" rows="5" placeholder="Расскажите о вашей передержке"></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="shelterPassword">Новый пароль</label>
+                                <input type="password" id="shelterPassword" name="password" placeholder="Оставьте пустым, чтобы не менять">
+                                <small class="form-hint">Минимум 6 символов</small>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="shelterPasswordConfirm">Подтвердите новый пароль</label>
+                                <input type="password" id="shelterPasswordConfirm" name="passwordConfirm" placeholder="Подтвердите новый пароль">
+                            </div>
+                            
+                            <div class="form-actions">
+                                <button type="submit" class="btn-primary">Сохранить изменения</button>
+                                <button type="button" id="shelterLogoutBtn" class="btn-secondary">Выйти</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Друзья на лапках. Все права защищены.</p>
+            <p style="margin-top: 0.5rem;">
+                <a href="privacy-policy.html" style="color: #fff; text-decoration: underline; margin-right: 1rem;">Политика конфиденциальности</a>
+                <a href="agreement.html" style="color: #fff; text-decoration: underline; margin-right: 1rem;">Согласие на получение рекламной информации</a>
+                <a href="donation-offer.html" style="color: #fff; text-decoration: underline;">Публичная оферта о заключении договора пожертвования</a>
+            </p>
+        </div>
+    </footer>
+
+    <script src="api-client.js"></script>
+    <script src="auth-data.js"></script>
+    <script src="phone-mask.js"></script>
+    <script src="notifications.js"></script>
+    <script src="custom-select.js"></script>
+    <script src="profile-scripts.js"></script>
+    <script src="navigation.js"></script>
+</body>
+</html>
+

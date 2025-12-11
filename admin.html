@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ-панель - Друзья на лапках</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="custom-select.css">
+    <style>
+        .admin-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+        .admin-header h2 {
+            margin: 0;
+            font-size: 2rem;
+        }
+        .admin-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        .adopted-pets-list {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 2rem;
+        }
+        .adopted-pet-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            gap: 1.5rem;
+            align-items: flex-start;
+        }
+        .adopted-pet-image {
+            width: 150px;
+            height: 150px;
+            border-radius: 8px;
+            object-fit: cover;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+        }
+        .adopted-pet-info {
+            flex: 1;
+        }
+        .adopted-pet-info h3 {
+            margin: 0 0 0.5rem 0;
+            color: #333;
+        }
+        .adopted-pet-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+        .adopted-pet-detail {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        .adopted-date {
+            color: #38a169;
+            font-weight: bold;
+            margin-top: 0.5rem;
+        }
+        .no-adopted-pets {
+            text-align: center;
+            padding: 3rem;
+            color: #999;
+        }
+        .admin-badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-left: 1rem;
+        }
+        .admin-tabs {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            border-bottom: 2px solid #e0e0e0;
+            margin-bottom: 2rem;
+        }
+        .admin-tab-btn {
+            background: none;
+            border: none;
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        .admin-tab-btn:hover {
+            color: #667eea;
+        }
+        .admin-tab-btn.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            font-weight: bold;
+        }
+        .admin-tab-content {
+            display: none;
+        }
+        .admin-tab-content.active {
+            display: block;
+        }
+        .volunteer-card, .application-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            background: white;
+        }
+        .volunteer-card h4, .application-card h4 {
+            margin: 0 0 1rem 0;
+            color: #333;
+        }
+        .volunteer-info, .application-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+        .volunteer-info p, .application-info p {
+            margin: 0.5rem 0;
+            color: #666;
+        }
+        .volunteer-activities {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        .activity-badge {
+            background: #667eea;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.85rem;
+        }
+        .user-card, .shelter-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            background: white;
+        }
+        .user-card h4, .shelter-card h4 {
+            margin: 0 0 1rem 0;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .user-type-badge {
+            background: #667eea;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: normal;
+        }
+        .shelter-type-badge {
+            background: #48bb78;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: normal;
+        }
+        .user-info, .shelter-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 0.75rem;
+            margin: 1rem 0;
+        }
+        .user-info p, .shelter-info p {
+            margin: 0.5rem 0;
+            color: #666;
+        }
+        .registration-date {
+            color: #999;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1 class="logo"><img src="logo.png" alt="Друзья на лапках"> Друзья на лапках</h1>
+            <nav>
+                <a href="index.html" class="nav-link">Главная</a>
+                <a href="take-pet.html" class="nav-link">Взять питомца</a>
+                <a href="emergency.html" class="nav-link">Экстренные ситуации</a>
+                <a href="help.html" class="nav-link">Помощь</a>
+                <a href="health.html" class="nav-link">Здоровье</a>
+                <a href="auth.html" class="nav-link">Вход</a>
+                <a href="profile.html" class="nav-link">Профиль</a>
+                <a href="shelter-dashboard.html" class="nav-link" style="display: none;">Панель передержки</a>
+                <a href="admin.html" class="nav-link active">Админ-панель</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="admin-header">
+            <div class="container">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h2>Админ-панель <span class="admin-badge">Администратор</span></h2>
+                        <p>Управление системой и просмотр статистики</p>
+                    </div>
+                    <button id="logoutBtn" class="submit-btn" style="background: #f5576c; margin: 0;">Выйти</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="content">
+            <div class="container">
+                <!-- Вкладки -->
+                <div class="admin-tabs" style="margin-bottom: 2rem;">
+                    <button class="admin-tab-btn active" data-tab="stats">📊 Статистика</button>
+                    <button class="admin-tab-btn" data-tab="adopted">✅ Забранные питомцы</button>
+                    <button class="admin-tab-btn" data-tab="applications">📝 Заявки на животных</button>
+                    <button class="admin-tab-btn" data-tab="volunteers">🤝 Волонтеры</button>
+                    <button class="admin-tab-btn" data-tab="users">👥 Пользователи и передержки</button>
+                    <button class="admin-tab-btn" data-tab="news">📰 Новости госветслужбы</button>
+                    <button class="admin-tab-btn" data-tab="advice">💡 Советы ветеринаров</button>
+                    <button class="admin-tab-btn" data-tab="shops">🏪 Зоомагазины</button>
+                    <button class="admin-tab-btn" data-tab="clinics">🏥 Ветклиники</button>
+                    <button class="admin-tab-btn" data-tab="settings">⚙️ Текст экстренных ситуций</button>
+                </div>
+
+                <!-- Статистика -->
+                <div id="statsTab" class="admin-tab-content active">
+                    <div class="admin-stats" id="adminStats">
+                        <div class="stat-card">
+                            <div class="stat-number" id="totalAdopted">0</div>
+                            <div class="stat-label">Всего забрано</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="totalPets">0</div>
+                            <div class="stat-label">Всего питомцев</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="availablePets">0</div>
+                            <div class="stat-label">Доступно</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="totalVolunteers">0</div>
+                            <div class="stat-label">Волонтеров</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="totalApplications">0</div>
+                            <div class="stat-label">Заявок на животных</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Забранные питомцы -->
+                <div id="adoptedTab" class="admin-tab-content">
+                    <div class="adopted-pets-list">
+                        <h3>Список забранных питомцев</h3>
+                        <div id="adoptedPetsList">
+                            <div class="no-adopted-pets">Загрузка...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Заявки на животных -->
+                <div id="applicationsTab" class="admin-tab-content">
+                    <div class="adopted-pets-list">
+                        <h3>Все заявки на животных</h3>
+                        <div id="allApplicationsList">
+                            <div class="no-adopted-pets">Загрузка...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Волонтеры -->
+                <div id="volunteersTab" class="admin-tab-content">
+                    <div class="adopted-pets-list">
+                        <h3>Заявки волонтеров</h3>
+                        <div id="volunteersList">
+                            <div class="no-adopted-pets">Загрузка...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Пользователи и передержки -->
+                <div id="usersTab" class="admin-tab-content">
+                    <div class="adopted-pets-list">
+                        <div style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap;">
+                            <button class="admin-tab-btn active" data-subtab="all-users" onclick="switchUsersTab('all', event)">👥 Все</button>
+                            <button class="admin-tab-btn" data-subtab="users-only" onclick="switchUsersTab('users', event)">👤 Пользователи</button>
+                            <button class="admin-tab-btn" data-subtab="shelters-only" onclick="switchUsersTab('shelters', event)">🏠 Передержки</button>
+                        </div>
+                        <div id="usersList">
+                            <div class="no-adopted-pets">Загрузка...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Новости госветслужбы -->
+                <div id="newsTab" class="admin-tab-content">
+                    <div class="adopted-pets-list">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+                            <h3 style="margin: 0;">Управление новостями госветслужбы</h3>
+                            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                                <button class="btn-secondary" onclick="syncNewsFromGosvet()" id="syncNewsBtn" style="margin: 0;">
+                                    🔄 Синхронизировать с gosvet.75.ru
+                                </button>
+                                <button class="btn-secondary" onclick="updateNewsContent()" id="updateContentBtn" style="margin: 0;">
+                                    📝 Обновить контент новостей
+                                </button>
+                                <button class="submit-btn" onclick="openNewsModal()" style="margin: 0;">➕ Добавить новость</button>
+                            </div>
+                        </div>
+                        <div id="newsList">
+                            <div class="no-adopted-pets">Загрузка...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Советы ветеринаров -->
+                <div id="adviceTab" class="admin-tab-content">
+                    <div class="adopted-pets-list">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+                            <h3 style="margin: 0;">Управление советами ветеринаров</h3>
+                            <button class="submit-btn" onclick="openAdviceModal()" style="margin: 0;">➕ Добавить совет</button>
+                        </div>
+                        <div id="adviceList">
+                            <div class="no-adopted-pets">Загрузка...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Зоомагазины -->
+                <div id="shopsTab" class="admin-tab-content">
+                    <div class="adopted-pets-list">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+                            <h3 style="margin: 0;">Управление зоомагазинами</h3>
+                            <button class="submit-btn" onclick="openShopModal()" style="margin: 0;">➕ Добавить зоомагазин</button>
+                        </div>
+                        <div id="shopsList">
+                            <div class="no-adopted-pets">Загрузка...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ветклиники -->
+                <div id="clinicsTab" class="admin-tab-content">
+                    <div class="adopted-pets-list">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+                            <h3 style="margin: 0;">Управление ветклиниками</h3>
+                            <button class="submit-btn" onclick="openClinicModal()" style="margin: 0;">➕ Добавить ветклинику</button>
+                        </div>
+                        <div id="clinicsList">
+                            <div class="no-adopted-pets">Загрузка...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Настройки -->
+                <div id="settingsTab" class="admin-tab-content">
+                    <div class="adopted-pets-list">
+                        <h3 style="margin: 0 0 2rem 0;">Настройки сайта</h3>
+                        
+                        <div style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+                            <h4 style="margin: 0 0 1rem 0;">Текст на странице "Экстренные ситуации"</h4>
+                            <p style="color: #666; margin-bottom: 1rem; font-size: 0.9rem;">
+                                Этот текст отображается на странице экстренных ситуаций между счетчиком "найдено животных" и формами.
+                            </p>
+                            <textarea id="emergencyTextInput" rows="6" placeholder="Введите текст, который будет отображаться на странице экстренных ситуаций..." style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem; font-family: inherit; resize: vertical; margin-bottom: 1rem;"></textarea>
+                            <button class="submit-btn" onclick="saveEmergencyText()" style="margin: 0;">💾 Сохранить текст</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Модальное окно для добавления/редактирования ветклиники -->
+    <div id="clinicModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+        <div style="background: white; padding: 2rem; border-radius: 12px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto;">
+            <h3 id="clinicModalTitle">Добавить ветклинику</h3>
+            <form id="clinicForm" style="display: flex; flex-direction: column; gap: 1rem;">
+                <div>
+                    <label>Название *</label>
+                    <input type="text" id="clinicName" required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <div>
+                    <label>Адрес *</label>
+                    <input type="text" id="clinicAddress" required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <div>
+                    <label>Телефон *</label>
+                    <input type="text" id="clinicPhone" required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <div>
+                    <label>Часы работы *</label>
+                    <input type="text" id="clinicHours" required placeholder="Пн-Вс: 9:00 - 21:00" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <div>
+                    <label>Услуги</label>
+                    <textarea id="clinicServices" rows="3" placeholder="Терапия, хирургия, стоматология, вакцинация..." style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; resize: vertical;"></textarea>
+                </div>
+                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                    <button type="button" class="btn-secondary" onclick="closeClinicModal()">Отмена</button>
+                    <button type="submit" class="submit-btn">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальное окно для добавления/редактирования зоомагазина -->
+    <div id="shopModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+        <div style="background: white; padding: 2rem; border-radius: 12px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto;">
+            <h3 id="shopModalTitle">Добавить зоомагазин</h3>
+            <form id="shopForm" style="display: flex; flex-direction: column; gap: 1rem;">
+                <div>
+                    <label>Название *</label>
+                    <input type="text" id="shopName" required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <div>
+                    <label>Адрес *</label>
+                    <input type="text" id="shopAddress" required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <div>
+                    <label>Телефон *</label>
+                    <input type="text" id="shopPhone" required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <div>
+                    <label>Часы работы *</label>
+                    <input type="text" id="shopHours" required placeholder="Пн-Вс: 9:00 - 20:00" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <div>
+                    <label>Описание</label>
+                    <textarea id="shopDescription" rows="3" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; resize: vertical;"></textarea>
+                </div>
+                <div>
+                    <label>Товары</label>
+                    <textarea id="shopProducts" rows="2" placeholder="Корм, аксессуары, игрушки..." style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; resize: vertical;"></textarea>
+                </div>
+                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                    <button type="button" class="btn-secondary" onclick="closeShopModal()">Отмена</button>
+                    <button type="submit" class="submit-btn">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальное окно для добавления/редактирования новости -->
+    <div id="newsModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+        <div style="background: white; padding: 2rem; border-radius: 12px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto;">
+            <h3 id="newsModalTitle">Добавить новость</h3>
+            <form id="newsForm" style="display: flex; flex-direction: column; gap: 1rem;">
+                <div>
+                    <label>Заголовок *</label>
+                    <input type="text" id="newsTitle" required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <div>
+                    <label>Источник *</label>
+                    <input type="text" id="newsSource" required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <div>
+                    <label>Дата *</label>
+                    <input type="date" id="newsDate" required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <div>
+                    <label>Содержание *</label>
+                    <textarea id="newsContent" required rows="5" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; resize: vertical;"></textarea>
+                </div>
+                <div>
+                    <label>
+                        <input type="checkbox" id="newsImportant">
+                        Важная новость
+                    </label>
+                </div>
+                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                    <button type="button" class="btn-secondary" onclick="closeNewsModal()">Отмена</button>
+                    <button type="submit" class="submit-btn">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальное окно для добавления/редактирования совета ветеринара -->
+    <div id="adviceModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+        <div style="background: white; padding: 2rem; border-radius: 12px; max-width: 700px; width: 90%; max-height: 90vh; overflow-y: auto;">
+            <h3 id="adviceModalTitle">Добавить совет ветеринара</h3>
+            <form id="adviceForm" style="display: flex; flex-direction: column; gap: 1rem;">
+                <div>
+                    <label>Заголовок *</label>
+                    <input type="text" id="adviceTitle" required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <div>
+                    <label>Автор *</label>
+                    <input type="text" id="adviceAuthor" required placeholder="Ветеринар Иван Петров" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <div>
+                    <label>Дата *</label>
+                    <input type="date" id="adviceDate" required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <div>
+                    <label>Категория *</label>
+                    <input type="text" id="adviceCategory" required placeholder="Питание, Уход, Здоровье" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <div>
+                    <label>Содержание *</label>
+                    <textarea id="adviceContent" required rows="5" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; resize: vertical;"></textarea>
+                </div>
+                <div>
+                    <label>Полезные советы (по одному на строку) *</label>
+                    <textarea id="adviceTips" required rows="5" placeholder="Кормите собаку в одно и то же время&#10;Не давайте еду со стола&#10;Следите за весом питомца" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; resize: vertical;"></textarea>
+                    <small style="color: #666;">Введите каждый совет с новой строки</small>
+                </div>
+                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                    <button type="button" class="btn-secondary" onclick="closeAdviceModal()">Отмена</button>
+                    <button type="submit" class="submit-btn">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальное окно для добавления/редактирования совета ветеринара -->
+    <div id="adviceModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+        <div style="background: white; padding: 2rem; border-radius: 12px; max-width: 700px; width: 90%; max-height: 90vh; overflow-y: auto;">
+            <h3 id="adviceModalTitle">Добавить совет ветеринара</h3>
+            <form id="adviceForm" style="display: flex; flex-direction: column; gap: 1rem;">
+                <div>
+                    <label>Заголовок *</label>
+                    <input type="text" id="adviceTitle" required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <div>
+                    <label>Автор *</label>
+                    <input type="text" id="adviceAuthor" required placeholder="Ветеринар Иван Петров" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <div>
+                    <label>Дата *</label>
+                    <input type="date" id="adviceDate" required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <div>
+                    <label>Категория *</label>
+                    <input type="text" id="adviceCategory" required placeholder="Питание, Уход, Здоровье" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <div>
+                    <label>Содержание *</label>
+                    <textarea id="adviceContent" required rows="5" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; resize: vertical;"></textarea>
+                </div>
+                <div>
+                    <label>Полезные советы (по одному на строку) *</label>
+                    <textarea id="adviceTips" required rows="5" placeholder="Кормите собаку в одно и то же время&#10;Не давайте еду со стола&#10;Следите за весом питомца" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; resize: vertical;"></textarea>
+                    <small style="color: #666;">Введите каждый совет с новой строки</small>
+                </div>
+                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                    <button type="button" class="btn-secondary" onclick="closeAdviceModal()">Отмена</button>
+                    <button type="submit" class="submit-btn">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Друзья на лапках. Все права защищены.</p>
+            <p style="margin-top: 0.5rem;">
+                <a href="privacy-policy.html" style="color: #fff; text-decoration: underline; margin-right: 1rem;">Политика конфиденциальности</a>
+                <a href="agreement.html" style="color: #fff; text-decoration: underline; margin-right: 1rem;">Согласие на получение рекламной информации</a>
+                <a href="donation-offer.html" style="color: #fff; text-decoration: underline;">Публичная оферта о заключении договора пожертвования</a>
+            </p>
+        </div>
+    </footer>
+
+    <script src="api-client.js"></script>
+    <script src="auth-data.js"></script>
+    <script src="pets-data.js"></script>
+    <script src="applications-data.js"></script>
+    <script src="notifications.js"></script>
+    <script src="custom-select.js"></script>
+    <script src="admin-scripts.js"></script>
+    <script src="navigation.js"></script>
+</body>
+</html>
+

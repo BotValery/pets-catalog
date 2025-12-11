@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Экстренные ситуации - Друзья на лапках</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="custom-select.css">
+    <link rel="stylesheet" href="custom-datepicker.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1 class="logo"><img src="logo.png" alt="Друзья на лапках"> Друзья на лапках</h1>
+            <nav>
+                <a href="index.html" class="nav-link">Главная</a>
+                <a href="take-pet.html" class="nav-link">Взять питомца</a>
+                <a href="emergency.html" class="nav-link active">Экстренные ситуации</a>
+                <a href="help.html" class="nav-link">Помощь</a>
+                <a href="health.html" class="nav-link">Здоровье</a>
+                <a href="auth.html" class="nav-link">Вход</a>
+                <a href="profile.html" class="nav-link">Профиль</a>
+                <a href="shelter-dashboard.html" class="nav-link" style="display: none;">Панель передержки</a>
+                <a href="admin.html" class="nav-link" style="display: none;">Админ-панель</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="page-header">
+            <div class="container">
+                <h2>Экстренные ситуации</h2>
+                <p>Помогите найти потерянных питомцев или сообщите о найденных животных</p>
+                <div class="counter-section">
+                    <div class="counter-box">
+                        <span class="counter-number" id="foundCounter">0</span>
+                        <span class="counter-label">найдено животных</span>
+                    </div>
+                </div>
+                <div id="emergencyTextSection" class="emergency-text-section" style="margin-top: 2rem; padding: 1.5rem; background: rgba(255, 255, 255, 0.1); border-radius: 8px; color: white; text-align: center;">
+                    <p id="emergencyText" style="margin: 0; font-size: 1.1rem; line-height: 1.6;"></p>
+                </div>
+            </div>
+        </section>
+
+        <section class="content">
+            <div class="container">
+                <div class="forms-container">
+                    <!-- Форма "Мой питомец потерялся" -->
+                    <div class="form-section collapsed">
+                        <div class="form-header" onclick="toggleForm(this)">
+                            <div class="form-header-content">
+                                <div class="form-icon">🔍</div>
+                                <div class="form-header-text">
+                                    <h3>Мой питомец потерялся</h3>
+                                    <p>Заполните форму, чтобы мы помогли найти вашего питомца</p>
+                                </div>
+                            </div>
+                            <div class="form-toggle-icon">▼</div>
+                        </div>
+                        <form id="lostPetForm" class="emergency-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="lostName">Имя питомца *</label>
+                                    <input type="text" id="lostName" name="name" required placeholder="Введите имя">
+                                </div>
+                                <div class="form-group">
+                                    <label for="lostType">Тип животного *</label>
+                                    <select id="lostType" name="type" required>
+                                        <option value="">Выберите тип</option>
+                                        <option value="dog">Собака</option>
+                                        <option value="cat">Кошка</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="lostBreed">Порода</label>
+                                    <input type="text" id="lostBreed" name="breed" placeholder="Например: Овчарка">
+                                </div>
+                                <div class="form-group">
+                                    <label for="lostAge">Возраст</label>
+                                    <input type="text" id="lostAge" name="age" placeholder="Например: 3 года">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="lostGender">Пол *</label>
+                                    <select id="lostGender" name="gender" required>
+                                        <option value="">Выберите пол</option>
+                                        <option value="male">Мальчик</option>
+                                        <option value="female">Девочка</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="lostColor">Окрас *</label>
+                                    <input type="text" id="lostColor" name="color" required placeholder="Например: Рыжий с белым">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="lostDescription">Описание и особые приметы *</label>
+                                <textarea id="lostDescription" name="description" rows="4" required placeholder="Опишите вашего питомца, особые приметы, характерные черты..."></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="lostLocation">Где потерялся? *</label>
+                                <input type="text" id="lostLocation" name="location" required placeholder="Улица, район, г. Чита">
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="lostDate">Дата пропажи *</label>
+                                    <input type="date" id="lostDate" name="date" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="lostContact">Ваши контакты *</label>
+                                    <input type="text" id="lostContact" name="contact" required placeholder="Телефон или email">
+                                </div>
+                            </div>
+
+                            <button type="submit" class="submit-btn">Разместить объявление</button>
+                        </form>
+                    </div>
+
+                    <!-- Форма "Я нашел питомца" -->
+                    <div class="form-section collapsed">
+                        <div class="form-header" onclick="toggleForm(this)">
+                            <div class="form-header-content">
+                                <div class="form-icon">🏠</div>
+                                <div class="form-header-text">
+                                    <h3>Я нашел питомца</h3>
+                                    <p>Сообщите о найденном животном, чтобы помочь найти его хозяев</p>
+                                </div>
+                            </div>
+                            <div class="form-toggle-icon">▼</div>
+                        </div>
+                        <form id="foundPetForm" class="emergency-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="foundType">Тип животного *</label>
+                                    <select id="foundType" name="type" required>
+                                        <option value="">Выберите тип</option>
+                                        <option value="dog">Собака</option>
+                                        <option value="cat">Кошка</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="foundGender">Пол</label>
+                                    <select id="foundGender" name="gender">
+                                        <option value="">Неизвестно</option>
+                                        <option value="male">Мальчик</option>
+                                        <option value="female">Девочка</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="foundBreed">Порода (если известна)</label>
+                                    <input type="text" id="foundBreed" name="breed" placeholder="Например: Дворняжка">
+                                </div>
+                                <div class="form-group">
+                                    <label for="foundAge">Примерный возраст</label>
+                                    <input type="text" id="foundAge" name="age" placeholder="Например: Взрослый">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="foundColor">Окрас *</label>
+                                <input type="text" id="foundColor" name="color" required placeholder="Например: Черный с белыми лапами">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="foundDescription">Описание и состояние животного *</label>
+                                <textarea id="foundDescription" name="description" rows="4" required placeholder="Опишите найденное животное, его состояние, поведение..."></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="foundLocation">Где найдено? *</label>
+                                <input type="text" id="foundLocation" name="location" required placeholder="Улица, район, г. Чита">
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="foundDate">Дата находки *</label>
+                                    <input type="date" id="foundDate" name="date" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="foundContact">Ваши контакты *</label>
+                                    <input type="text" id="foundContact" name="contact" required placeholder="Телефон или email">
+                                </div>
+                            </div>
+
+                            <button type="submit" class="submit-btn">Сообщить о находке</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Список объявлений -->
+                <div class="announcements-section">
+                    <h3>Активные объявления</h3>
+                    <div class="announcements-tabs">
+                        <button class="tab-btn active" data-tab="lost">Потерянные</button>
+                        <button class="tab-btn" data-tab="found">Найденные</button>
+                    </div>
+                    <div id="lostAnnouncements" class="announcements-list"></div>
+                    <div id="foundAnnouncements" class="announcements-list" style="display: none;"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Друзья на лапках. Все права защищены.</p>
+            <p style="margin-top: 0.5rem;">
+                <a href="privacy-policy.html" style="color: #fff; text-decoration: underline; margin-right: 1rem;">Политика конфиденциальности</a>
+                <a href="agreement.html" style="color: #fff; text-decoration: underline; margin-right: 1rem;">Согласие на получение рекламной информации</a>
+                <a href="donation-offer.html" style="color: #fff; text-decoration: underline;">Публичная оферта о заключении договора пожертвования</a>
+            </p>
+        </div>
+    </footer>
+
+    <script src="api-client.js"></script>
+    <script src="auth-data.js"></script>
+    <script src="emergency-data.js"></script>
+    <script src="notifications.js"></script>
+    <script src="phone-mask.js"></script>
+    <script src="custom-datepicker.js"></script>
+    <script src="custom-select.js"></script>
+    <script src="emergency-forms.js"></script>
+    <script src="navigation.js"></script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+{
+  "name": "pets-platform-backend",
+  "version": "1.0.0",
+  "description": "Платформа для помощи животным 'Друзья на лапках' - система размещения объявлений о животных, управления заявками на усыновление и публикации полезной информации",
+  "main": "server.js",
+    "scripts": {
+        "start": "node server.js",
+        "dev": "nodemon server.js",
+        "init-db": "node scripts/init-db.js",
+        "migrate-news": "node scripts/add-news-table.js",
+        "add-character": "node scripts/add-character-column.js",
+        "add-userid-announcements": "node scripts/add-userid-to-announcements.js",
+        "extract-docx": "node scripts/extract-docx-text.js",
+        "clear-news": "node scripts/clear-news.js",
+        "add-shops": "node scripts/add-shops-table.js",
+        "add-clinics": "node scripts/add-clinics-table.js",
+        "migrate-users": "node scripts/migrate-users-to-telegram.js",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+  "keywords": [
+    "pets",
+    "shelter",
+    "animals"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.13.2",
+    "bcryptjs": "^2.4.3",
+    "cheerio": "^1.1.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-validator": "^7.0.1",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.1",
+    "node-cron": "^3.0.3",
+    "sqlite3": "^5.1.6"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

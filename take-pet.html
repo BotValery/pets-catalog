@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Взять питомца - Друзья на лапках</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="custom-select.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1 class="logo"><img src="logo.png" alt="Друзья на лапках"> Друзья на лапках</h1>
+            <nav>
+                <a href="index.html" class="nav-link">Главная</a>
+                <a href="take-pet.html" class="nav-link active">Взять питомца</a>
+                <a href="emergency.html" class="nav-link">Экстренные ситуации</a>
+                <a href="help.html" class="nav-link">Помощь</a>
+                <a href="health.html" class="nav-link">Здоровье</a>
+                <a href="auth.html" class="nav-link">Вход</a>
+                <a href="profile.html" class="nav-link">Профиль</a>
+                <a href="shelter-dashboard.html" class="nav-link" style="display: none;">Панель передержки</a>
+                <a href="admin.html" class="nav-link" style="display: none;">Админ-панель</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="page-header">
+            <div class="container">
+                <h2>Взять питомца</h2>
+                <p>Выберите животное из нашей базы и подарите ему любящий дом</p>
+                <div class="counter-section">
+                    <div class="counter-box">
+                        <span class="counter-number" id="adoptedCounter">0</span>
+                        <span class="counter-label">пристроено животных</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="content">
+            <div class="container">
+                <!-- Форма размещения животного для передержек -->
+                <div id="shelterPetFormSection" class="shelter-form-section" style="display: none;">
+                    <div class="form-container">
+                        <h3>Разместить животное</h3>
+                        <form id="addPetForm" class="pet-form">
+                            <div class="form-group">
+                                <label for="petName">Имя животного *</label>
+                                <input type="text" id="petName" name="name" required>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="petType">Тип животного *</label>
+                                    <select id="petType" name="type" required>
+                                        <option value="">Выберите</option>
+                                        <option value="dog">Собака</option>
+                                        <option value="cat">Кошка</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="petBreed">Порода *</label>
+                                    <input type="text" id="petBreed" name="breed" required placeholder="Например: Немецкая овчарка">
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="petAgeYears">Возраст: Годы *</label>
+                                    <input type="number" id="petAgeYears" name="ageYears" min="0" max="30" value="0" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="petAgeMonths">Месяцы *</label>
+                                    <input type="number" id="petAgeMonths" name="ageMonths" min="0" max="11" value="0" required>
+                                    <small style="color: #666; font-size: 0.85rem; display: block; margin-top: 0.25rem;">От 0 до 11 месяцев</small>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="petGender">Пол *</label>
+                                    <select id="petGender" name="gender" required>
+                                        <option value="">Выберите</option>
+                                        <option value="male">Мальчик</option>
+                                        <option value="female">Девочка</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="petSize">Размер *</label>
+                                    <select id="petSize" name="size" required>
+                                        <option value="">Выберите</option>
+                                        <option value="small">Маленький</option>
+                                        <option value="medium">Средний</option>
+                                        <option value="large">Большой</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="petColor">Цвет *</label>
+                                <input type="text" id="petColor" name="color" required placeholder="Например: Рыжий с белыми пятнами">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="petCharacter">Характер *</label>
+                                <textarea id="petCharacter" name="character" required rows="3" placeholder="Опишите характер животного"></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="petDescription">Описание *</label>
+                                <textarea id="petDescription" name="description" required rows="4" placeholder="Подробное описание животного"></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="petPhotos">Фотографии (можно несколько)</label>
+                                <input type="file" id="petPhotos" name="photos" multiple accept="image/*">
+                                <div id="photoPreview" class="photo-preview"></div>
+                            </div>
+                            
+                            <button type="submit" class="btn-primary">Разместить животное</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Фильтры -->
+                <div class="filters-section">
+                    <h3>Фильтры поиска</h3>
+                    <div class="filters">
+                        <div class="filter-group">
+                            <label for="typeFilter">Тип животного:</label>
+                            <select id="typeFilter" class="filter-select">
+                                <option value="all">Все</option>
+                                <option value="dog">Собака</option>
+                                <option value="cat">Кошка</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="ageFilter">Возраст:</label>
+                            <select id="ageFilter" class="filter-select">
+                                <option value="all">Все</option>
+                                <option value="young">Щенок/Котенок (до 1 года)</option>
+                                <option value="adult">Взрослый (1-7 лет)</option>
+                                <option value="senior">Пожилой (7+ лет)</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="genderFilter">Пол:</label>
+                            <select id="genderFilter" class="filter-select">
+                                <option value="all">Все</option>
+                                <option value="male">Мальчик</option>
+                                <option value="female">Девочка</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="sizeFilter">Размер:</label>
+                            <select id="sizeFilter" class="filter-select">
+                                <option value="all">Все</option>
+                                <option value="small">Маленький</option>
+                                <option value="medium">Средний</option>
+                                <option value="large">Большой</option>
+                            </select>
+                        </div>
+
+                        <button id="resetFilters" class="reset-btn">Сбросить фильтры</button>
+                    </div>
+                </div>
+
+                <!-- Каталог животных -->
+                <div class="catalog-section">
+                    <div class="catalog-header">
+                        <h3>Доступные питомцы</h3>
+                        <p class="results-count">Найдено: <span id="resultsCount">0</span></p>
+                    </div>
+                    <div class="pets-grid" id="petsGrid">
+                        <!-- Карточки животных будут добавлены через JavaScript -->
+                    </div>
+                    <div id="noResults" class="no-results" style="display: none;">
+                        <p>По вашему запросу ничего не найдено. Попробуйте изменить параметры фильтра.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Друзья на лапках. Все права защищены.</p>
+            <p style="margin-top: 0.5rem;">
+                <a href="privacy-policy.html" style="color: #fff; text-decoration: underline; margin-right: 1rem;">Политика конфиденциальности</a>
+                <a href="agreement.html" style="color: #fff; text-decoration: underline; margin-right: 1rem;">Согласие на получение рекламной информации</a>
+                <a href="donation-offer.html" style="color: #fff; text-decoration: underline;">Публичная оферта о заключении договора пожертвования</a>
+            </p>
+        </div>
+    </footer>
+
+    <script src="api-client.js"></script>
+    <script src="auth-data.js"></script>
+    <script src="applications-data.js"></script>
+    <script src="pets-data.js"></script>
+    <script src="notifications.js"></script>
+    <script src="custom-select.js"></script>
+    <script src="pets-catalog.js"></script>
+    <script src="navigation.js"></script>
+</body>
+</html>
