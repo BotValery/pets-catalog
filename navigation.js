@@ -59,8 +59,58 @@ function updateNavigation() {
     });
 }
 
+// Мобильное меню (бургер)
+function initMobileMenu() {
+    const header = document.querySelector('header');
+    const container = header ? header.querySelector('.container') : null;
+    const nav = header ? header.querySelector('nav') : null;
+    
+    if (!header || !container || !nav) return;
+    
+    // Не создаем повторно
+    if (container.querySelector('.mobile-menu-btn')) return;
+    
+    const btn = document.createElement('button');
+    btn.className = 'mobile-menu-btn';
+    btn.type = 'button';
+    btn.setAttribute('aria-label', 'Открыть меню');
+    btn.setAttribute('aria-expanded', 'false');
+    btn.innerHTML = '<span></span><span></span><span></span>';
+    
+    container.insertBefore(btn, nav);
+    
+    const closeMenu = () => {
+        header.classList.remove('nav-open');
+        btn.setAttribute('aria-expanded', 'false');
+    };
+    
+    btn.addEventListener('click', () => {
+        const isOpen = header.classList.toggle('nav-open');
+        btn.setAttribute('aria-expanded', String(isOpen));
+    });
+    
+    // Закрываем меню при клике по ссылке
+    nav.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', () => {
+            if (window.innerWidth <= 900) {
+                closeMenu();
+            }
+        });
+    });
+    
+    // Сбрасываем состояние при переходе в десктоп
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 900) {
+            closeMenu();
+        }
+    });
+}
+
 // Инициализация при загрузке DOM
-document.addEventListener('DOMContentLoaded', updateNavigation);
+document.addEventListener('DOMContentLoaded', () => {
+    initMobileMenu();
+    updateNavigation();
+});
 
 // Экспортируем функцию для использования в других скриптах
 if (typeof window !== 'undefined') {
