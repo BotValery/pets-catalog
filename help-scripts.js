@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     name: formData.get('name'),
                     age: formData.get('age'),
                     phone: formData.get('phone'),
-                    email: formData.get('email'),
+                    telegram: formData.get('telegram'),
                     city: formData.get('city'),
                     activities: activities,
                     experience: formData.get('experience'),

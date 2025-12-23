@@ -20,7 +20,8 @@ async function ensureVolunteersTable() {
                     name TEXT NOT NULL,
                     age INTEGER,
                     phone TEXT,
-                    email TEXT UNIQUE,
+                    email TEXT,
+                    telegram TEXT,
                     city TEXT,
                     activities TEXT,
                     experience TEXT,
@@ -29,6 +30,20 @@ async function ensureVolunteersTable() {
                 )
             `);
             console.log('✅ Таблица volunteers создана автоматически');
+        } else {
+            // Проверяем наличие колонки telegram и добавляем её, если нет
+            try {
+                const tableInfo = await db.all("PRAGMA table_info(volunteers)");
+                const columnNames = tableInfo.map(col => col.name);
+                
+                if (!columnNames.includes('telegram')) {
+                    console.log('📦 Добавление колонки telegram в таблицу volunteers...');
+                    await db.run('ALTER TABLE volunteers ADD COLUMN telegram TEXT');
+                    console.log('✅ Колонка telegram добавлена');
+                }
+            } catch (error) {
+                // Игнорируем ошибку, если колонка уже существует
+            }
         }
     } catch (error) {
         console.error('Ошибка создания таблицы volunteers:', error);
@@ -70,7 +85,7 @@ router.get('/', authenticateToken, async (req, res) => {
 // Создать заявку волонтера
 router.post('/', [
     body('name').trim().notEmpty().withMessage('Имя обязательно'),
-    body('email').optional().isEmail().withMessage('Некорректный email'),
+    body('telegram').optional().trim(),
     body('phone').optional().trim()
 ], async (req, res) => {
     try {
@@ -86,22 +101,35 @@ router.post('/', [
             age,
             phone,
             email,
+            telegram,
             city,
             activities,
             experience,
             availability
         } = req.body;
 
+        // Проверяем, что activities - это массив
+        let activitiesJson = null;
+        if (activities) {
+            if (Array.isArray(activities)) {
+                activitiesJson = JSON.stringify(activities);
+            } else {
+                console.warn('activities не является массивом:', activities);
+                activitiesJson = JSON.stringify([activities]);
+            }
+        }
+
         const result = await db.run(
-            `INSERT INTO volunteers (name, age, phone, email, city, activities, experience, availability)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            `INSERT INTO volunteers (name, age, phone, email, telegram, city, activities, experience, availability)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 name,
                 age || null,
                 phone || null,
                 email || null,
+                telegram || null,
                 city || null,
-                activities ? JSON.stringify(activities) : null,
+                activitiesJson,
                 experience || null,
                 availability || null
             ]
@@ -116,7 +144,30 @@ router.post('/', [
         });
     } catch (error) {
         console.error('Ошибка создания заявки волонтера:', error);
-        res.status(500).json({ error: 'Ошибка сервера' });
+        console.error('Детали ошибки:', {
+            message: error.message,
+            stack: error.stack,
+            code: error.code,
+            body: req.body ? {
+                name: req.body.name,
+                email: req.body.email,
+                activitiesCount: req.body.activities ? (Array.isArray(req.body.activities) ? req.body.activities.length : 1) : 0
+            } : null
+        });
+        
+        // Проверяем, если это ошибка уникальности
+        if (error.code === 'SQLITE_CONSTRAINT_UNIQUE' || error.message.includes('UNIQUE constraint')) {
+            return res.status(400).json({ 
+                error: 'Данные уже используются',
+                message: 'Заявка с такими данными уже существует'
+            });
+        }
+        
+        res.status(500).json({ 
+            error: 'Ошибка сервера',
+            message: error.message || 'Не удалось сохранить заявку волонтера',
+            details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
     }
 });
 

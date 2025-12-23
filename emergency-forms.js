@@ -39,17 +39,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Инициализируем базу данных
     // API инициализируется автоматически
     
-    // Проверяем авторизацию - только обычные пользователи могут размещать объявления
+    // Проверяем авторизацию
     const currentUser = AuthSystem.getCurrentUser();
-    if (currentUser && currentUser.type === 'shelter') {
-        // Скрываем формы для передержек
-        document.getElementById('lostPetForm').style.display = 'none';
-        document.getElementById('foundPetForm').style.display = 'none';
-        const formsContainer = document.querySelector('.forms-container');
-        if (formsContainer) {
-            formsContainer.innerHTML = '<p style="text-align: center; padding: 2rem; color: #666;">Только обычные пользователи могут размещать объявления о потерянных и найденных животных. Передержки могут размещать животных на странице "Взять питомца".</p>';
-        }
-    }
     
     // Получаем элементы
     const lostPetForm = document.getElementById('lostPetForm');
@@ -90,8 +81,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             
             // Проверяем авторизацию
             const currentUser = AuthSystem.getCurrentUser();
-            if (!currentUser || currentUser.type !== 'user') {
-                NotificationSystem.warning('Пожалуйста, войдите как обычный пользователь, чтобы разместить объявление');
+            if (!currentUser) {
+                NotificationSystem.warning('Пожалуйста, войдите в систему, чтобы разместить объявление');
                 setTimeout(() => {
                     window.location.href = 'auth.html';
                 }, 1500);
@@ -142,8 +133,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             
             // Проверяем авторизацию
             const currentUser = AuthSystem.getCurrentUser();
-            if (!currentUser || currentUser.type !== 'user') {
-                NotificationSystem.warning('Пожалуйста, войдите как обычный пользователь, чтобы разместить объявление');
+            if (!currentUser) {
+                NotificationSystem.warning('Пожалуйста, войдите в систему, чтобы разместить объявление');
                 setTimeout(() => {
                     window.location.href = 'auth.html';
                 }, 1500);
@@ -253,7 +244,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             console.log('Текущий пользователь для потерянных:', currentUser);
             
             const isOwner = (announcement) => {
-                if (!currentUser || currentUser.type !== 'user') {
+                if (!currentUser) {
                     return false;
                 }
                 // Проверяем, что userId существует и совпадает
@@ -359,7 +350,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             console.log('Текущий пользователь для найденных:', currentUser);
             
             const isOwner = (announcement) => {
-                if (!currentUser || currentUser.type !== 'user') {
+                if (!currentUser) {
                     return false;
                 }
                 // Проверяем, что userId существует и совпадает

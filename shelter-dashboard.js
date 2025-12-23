@@ -340,6 +340,8 @@ document.addEventListener('DOMContentLoaded', async function() {
                         'cleaning': 'Уборка в передержке',
                         'social': 'Помощь в соцсетях',
                         'events': 'Организация мероприятий',
+                        'car': 'Помощь авто',
+                        'curator': 'Кураторство животного',
                         'other': 'Другое'
                     };
                     
@@ -365,7 +367,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                             <div class="application-info">
                                 <p><strong>Возраст:</strong> ${volunteer.age || 'Не указан'}</p>
                                 <p><strong>Телефон:</strong> ${volunteer.phone || 'Не указан'}</p>
-                                <p><strong>telegram:</strong> ${volunteer.email || 'Не указан'}</p>
+                                <p><strong>Telegram:</strong> ${volunteer.telegram || volunteer.email || 'Не указан'}</p>
                                 <p><strong>Город:</strong> ${volunteer.city || 'Не указан'}</p>
                                 <p><strong>Дата заявки:</strong> ${dateText}</p>
                             </div>
