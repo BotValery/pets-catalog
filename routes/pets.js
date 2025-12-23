@@ -252,7 +252,9 @@ router.post('/', authenticateToken, requireShelter, [
             color,
             character,
             description,
-            photos
+            photos,
+            comments,
+            foundLocation
         } = req.body;
 
         // Определяем возрастную категорию если не указана
