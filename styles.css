@@ -117,29 +117,13 @@ header.nav-open .mobile-menu-btn {
     min-width: 0;
 }
 
-/* Скрытие ссылок без смещения layout - используем visibility и размеры */
-.nav-link[style*="display: none"],
+/* Скрытие ссылок навигации */
 .nav-link.nav-hidden {
-    display: inline-block !important;
-    width: 0 !important;
-    height: 0 !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    overflow: hidden !important;
-    opacity: 0 !important;
-    visibility: hidden !important;
-    pointer-events: none !important;
-    min-width: 0 !important;
-    max-width: 0 !important;
-    font-size: 0 !important;
-    line-height: 0 !important;
-    border: none !important;
+    display: none !important;
 }
 
 .nav-link.nav-visible {
     display: inline-block !important;
-    opacity: 1 !important;
-    visibility: visible !important;
 }
 
 .nav-link:hover,

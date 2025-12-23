@@ -15,46 +15,25 @@ function updateNavigation() {
         
         // Скрываем "Вход" если пользователь авторизован
         if (href === 'auth.html') {
-            if (currentUser) {
-                link.style.display = 'none';
-                link.classList.add('nav-hidden');
-            } else {
-                link.style.display = 'inline-block';
-                link.classList.add('nav-visible');
-            }
+            link.classList.add(currentUser ? 'nav-hidden' : 'nav-visible');
         }
         
         // Скрываем "Профиль" если пользователь не авторизован или если это админ
         if (href === 'profile.html') {
-            if (!currentUser || (currentUser && currentUser.type === 'admin')) {
-                link.style.display = 'none';
-                link.classList.add('nav-hidden');
-            } else {
-                link.style.display = 'inline-block';
-                link.classList.add('nav-visible');
-            }
+            const show = !!currentUser && currentUser.type !== 'admin';
+            link.classList.add(show ? 'nav-visible' : 'nav-hidden');
         }
         
         // Показываем "Админ-панель" только для админов
         if (href === 'admin.html') {
-            if (currentUser && currentUser.type === 'admin') {
-                link.style.display = 'inline-block';
-                link.classList.add('nav-visible');
-            } else {
-                link.style.display = 'none';
-                link.classList.add('nav-hidden');
-            }
+            const show = !!currentUser && currentUser.type === 'admin';
+            link.classList.add(show ? 'nav-visible' : 'nav-hidden');
         }
         
         // Показываем "Панель передержки" только для передержек
         if (href === 'shelter-dashboard.html') {
-            if (currentUser && currentUser.type === 'shelter') {
-                link.style.display = 'inline-block';
-                link.classList.add('nav-visible');
-            } else {
-                link.style.display = 'none';
-                link.classList.add('nav-hidden');
-            }
+            const show = !!currentUser && currentUser.type === 'shelter';
+            link.classList.add(show ? 'nav-visible' : 'nav-hidden');
         }
     });
 }
