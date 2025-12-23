@@ -37,6 +37,7 @@ async function ensurePetsTable() {
                     shelterName TEXT,
                     adopted BOOLEAN DEFAULT 0,
                     adoptedAt DATETIME,
+                    sterilizationStatus TEXT,
                     createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (shelterId) REFERENCES shelters(id)
                 )
@@ -64,6 +65,12 @@ async function ensurePetsTable() {
                     console.log('📦 Добавление колонки foundLocation в таблицу pets...');
                     await db.run('ALTER TABLE pets ADD COLUMN foundLocation TEXT');
                     console.log('✅ Колонка foundLocation добавлена');
+                }
+
+                if (!columnNames.includes('sterilizationStatus')) {
+                    console.log('📦 Добавление колонки sterilizationStatus в таблицу pets...');
+                    await db.run('ALTER TABLE pets ADD COLUMN sterilizationStatus TEXT');
+                    console.log('✅ Колонка sterilizationStatus добавлена');
                 }
             } catch (error) {
                 // Игнорируем ошибку, если колонка уже существует
@@ -440,6 +447,7 @@ router.patch('/:id/sterilization', authenticateToken, requireShelter, [
     body('sterilizationStatus').isIn(['sterilized', 'will_sterilize', 'under_sterilization']).withMessage('Некорректный статус стерилизации')
 ], async (req, res) => {
     try {
+        await ensurePetsTable(); // гарантируем наличие колонки sterilizationStatus
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({ errors: errors.array() });
@@ -477,6 +485,7 @@ router.patch('/:id/adopt-status', authenticateToken, requireShelter, [
     body('adopted').isBoolean().withMessage('adopted должен быть boolean')
 ], async (req, res) => {
     try {
+        await ensurePetsTable(); // гарантируем свежую схему перед изменением статусов
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({ errors: errors.array() });
