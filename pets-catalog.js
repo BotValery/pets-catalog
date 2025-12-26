@@ -25,7 +25,6 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Проверяем авторизацию
     const currentUser = AuthSystem.getCurrentUser();
-    console.log('Текущий пользователь:', currentUser);
 
     // Объявляем переменную для хранения всех животных
     let allPets = [];
@@ -57,20 +56,17 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (!addPetForm) {
         console.error('Форма addPetForm не найдена! Проверьте, что элемент с id="addPetForm" существует в HTML.');
     } else {
-        console.log('Форма addPetForm успешно найдена');
     }
 
     // Функционал управления заявками перенесен на shelter-dashboard.html
 
     // Обработчик формы размещения животного
     if (addPetForm) {
-        console.log('Форма addPetForm найдена, добавляем обработчик submit');
         
         // Также добавляем обработчик на кнопку отправки для отладки
         const submitButton = addPetForm.querySelector('button[type="submit"]');
         if (submitButton) {
             submitButton.addEventListener('click', function(e) {
-                console.log('Кнопка отправки нажата');
                 // Не предотвращаем default здесь, чтобы форма могла отправиться
             });
         }
@@ -78,7 +74,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         addPetForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             e.stopPropagation();
-            console.log('Форма submit вызван');
             
             try {
                 // Проверяем валидность формы
@@ -91,14 +86,12 @@ document.addEventListener('DOMContentLoaded', async function() {
                 
                 // Проверяем авторизацию заново
                 const currentUser = AuthSystem.getCurrentUser();
-                console.log('Текущий пользователь:', currentUser);
                 if (!currentUser || currentUser.type !== 'shelter') {
                     NotificationSystem.error('Только передержки могут размещать животных. Пожалуйста, войдите как передержка.');
                     return;
                 }
                 
                 const formData = new FormData(addPetForm);
-                console.log('Данные формы:', {
                     name: formData.get('name'),
                     type: formData.get('type'),
                     breed: formData.get('breed'),
@@ -144,7 +137,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                 // Обрабатываем фотографии с оптимизацией размера
                 const photos = [];
                 const files = petPhotos ? petPhotos.files : [];
-                console.log('Количество выбранных фотографий:', files.length);
                 
                 if (files.length > 0) {
                     NotificationSystem.info('Обработка фотографий...');
@@ -189,13 +181,11 @@ document.addEventListener('DOMContentLoaded', async function() {
                                         resolve(compressedDataUrl);
                                     } catch (canvasError) {
                                         // Если не удалось оптимизировать, используем оригинал
-                                        console.warn('Не удалось оптимизировать изображение, используем оригинал:', canvasError);
                                         resolve(e.target.result);
                                     }
                                 };
                                 img.onerror = () => {
                                     // Если не удалось загрузить как изображение, используем оригинал
-                                    console.warn('Не удалось загрузить изображение, используем оригинал');
                                     resolve(e.target.result);
                                 };
                                 img.src = e.target.result;
@@ -204,7 +194,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                             reader.readAsDataURL(file);
                         });
                         photos.push(await photoPromise);
-                        console.log(`Фотография ${i + 1}/${files.length} обработана`);
                     } catch (error) {
                         console.error('Ошибка обработки фотографии:', error);
                         NotificationSystem.warning(`Не удалось обработать фотографию "${file.name}". Попробуйте выбрать другое изображение.`);
@@ -212,7 +201,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                     }
                 }
                 
-                console.log(`Всего обработано фотографий: ${photos.length}`);
                 
                 const pet = {
                     name: formData.get('name'),
@@ -235,7 +223,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                     createdAt: new Date().toISOString()
                 };
                 
-                console.log('Отправка данных питомца:', {
                     name: pet.name,
                     type: pet.type,
                     breed: pet.breed,
@@ -255,17 +242,13 @@ document.addEventListener('DOMContentLoaded', async function() {
                         // Объединяем существующие фотографии с новыми
                         pet.photos = [...existingPhotos, ...pet.photos];
                         
-                        console.log('Вызов apiClient.updatePet...');
                         await apiClient.updatePet(editId, pet);
-                        console.log('Питомец успешно обновлен');
                         NotificationSystem.success('Животное успешно обновлено!');
                         delete addPetForm.dataset.editId;
                         delete addPetForm.dataset.existingPhotos;
                     } else {
                         // Создание нового питомца
-                        console.log('Вызов apiClient.addPet...');
-                        const response = await apiClient.addPet(pet);
-                        console.log('Питомец успешно добавлен:', response);
+                        await apiClient.addPet(pet);
                         NotificationSystem.success('Животное успешно размещено!');
                     }
                     
@@ -646,7 +629,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                     const applicationId = select.getAttribute('data-application-id');
                     if (applicationId) {
                         select.addEventListener('change', function(e) {
-                            console.log('Событие change на select:', { applicationId, value: this.value });
                             updateApplicationStatus(parseInt(applicationId), this.value);
                         });
                     }
@@ -697,9 +679,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Обновление статуса заявки
     window.updateApplicationStatus = async function(applicationId, status) {
         try {
-            console.log('Обновление статуса заявки:', { applicationId, status });
             const result = await ApplicationsSystem.updateApplicationStatus(applicationId, status);
-            console.log('Результат обновления статуса:', result);
             
             if (result.success) {
                 // Если статус "отказались", заявка была удалена
@@ -712,16 +692,12 @@ document.addEventListener('DOMContentLoaded', async function() {
                 }
                 
                 // Обновляем счетчик и список животных при любом изменении статуса
-                console.log('Обновляем счетчик и список питомцев...');
                 await updateAdoptedCounter();
                 await loadPets();
-                console.log('Список питомцев обновлен');
                 
                 // Обновляем модальное окно
-                console.log('Обновляем модальное окно...');
                 closeApplicationsModal();
                 await showApplicationsModal();
-                console.log('Модальное окно обновлено');
             } else {
                 console.error('Ошибка обновления статуса:', result.message);
                 NotificationSystem.error(result.message || 'Произошла ошибка при обновлении статуса');
@@ -744,7 +720,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Функция редактирования питомца
     window.editPet = async function(petId) {
         try {
-            console.log('Редактирование питомца:', petId);
             const data = await apiClient.getPet(petId);
             const pet = data.pet;
             
@@ -753,7 +728,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                 return;
             }
 
-            console.log('Питомец загружен:', pet);
             // Открываем форму редактирования
             openEditPetModal(pet);
         } catch (error) {
@@ -770,7 +744,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
 
         try {
-            console.log('Удаление питомца:', petId);
             await apiClient.deletePet(petId);
             NotificationSystem.success('Питомец успешно удален');
             await loadPets();

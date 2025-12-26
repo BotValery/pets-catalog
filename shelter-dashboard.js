@@ -151,12 +151,10 @@ document.addEventListener('DOMContentLoaded', async function() {
                                         const compressedDataUrl = canvas.toDataURL('image/jpeg', QUALITY);
                                         resolve(compressedDataUrl);
                                     } catch (canvasError) {
-                                        console.warn('Не удалось оптимизировать изображение:', canvasError);
                                         resolve(e.target.result);
                                     }
                                 };
                                 img.onerror = () => {
-                                    console.warn('Не удалось загрузить изображение');
                                     resolve(e.target.result);
                                 };
                                 img.src = e.target.result;
@@ -486,7 +484,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                             select.classList.add('custom-select-initialized');
                             new window.CustomSelect(select);
                         } catch (e) {
-                            console.warn('Ошибка инициализации select:', e);
                         }
                     }
                 });

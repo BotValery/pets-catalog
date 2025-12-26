@@ -81,7 +81,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                 
                 // Пожертвования пока сохраняются только локально
                 // TODO: Добавить endpoint для пожертвований
-                console.warn('Сохранение пожертвований через API пока не реализовано');
                 localStorage.setItem(`donation_${Date.now()}`, JSON.stringify(donation));
                 
                 donationForm.reset();

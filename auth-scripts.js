@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     try {
         await apiClient.request('/health');
     } catch (error) {
-        console.warn('Сервер недоступен:', error);
         // Показываем предупреждение, но не блокируем страницу
         NotificationSystem.warning('Сервер недоступен. Регистрация может не работать.');
     }
@@ -278,7 +277,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                 loginIdentifier.dataset.phoneMaskApplied = 'true';
                 loginIdentifier.type = 'tel';
             } catch (e) {
-                console.warn('Не удалось применить маску телефона:', e);
             }
         }
         

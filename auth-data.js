@@ -83,7 +83,6 @@ const AuthSystem = {
 
     // Сохранить админа (только для миграции, в продакшене админ создается через init-db.js)
     async saveAdmin(admin) {
-        console.warn('saveAdmin: Админы создаются через серверный скрипт init-db.js');
         return null;
     },
 
@@ -113,7 +112,6 @@ const AuthSystem = {
 
     // Найти админа по email (не используется через API)
     async findAdminByEmail(email) {
-        console.warn('findAdminByEmail: Админы управляются через сервер');
         return null;
     },
 

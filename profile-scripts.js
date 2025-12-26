@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     try {
         await apiClient.request('/health');
     } catch (error) {
-        console.warn('Сервер недоступен:', error);
         NotificationSystem.warning('Сервер недоступен. Убедитесь, что сервер запущен на http://localhost:3000');
     }
     
@@ -199,7 +198,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             // Пароль обновляется отдельно (если нужно добавить endpoint для смены пароля)
             // Пока не отправляем пароль, так как нет отдельного endpoint для смены пароля
             if (password) {
-                console.warn('Смена пароля через API пока не реализована');
                 // TODO: Добавить endpoint для смены пароля
             }
 
@@ -275,7 +273,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             
             // Пароль обновляется отдельно (если нужно добавить endpoint для смены пароля)
             if (password) {
-                console.warn('Смена пароля через API пока не реализована');
                 // TODO: Добавить endpoint для смены пароля
             }
 

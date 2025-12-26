@@ -220,7 +220,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Функция отображения объявлений о потерянных животных
     async function renderLostAnnouncements() {
         if (!lostAnnouncements) {
-            console.warn('Элемент lostAnnouncements не найден');
             return;
         }
         
@@ -241,26 +240,17 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
 
             const currentUser = AuthSystem.getCurrentUser();
-            console.log('Текущий пользователь для потерянных:', currentUser);
             
             const isOwner = (announcement) => {
                 if (!currentUser) {
                     return false;
                 }
                 // Проверяем, что userId существует и совпадает
-                const isOwn = announcement.userId != null && announcement.userId === currentUser.id;
-                console.log('Проверка владельца:', {
-                    announcementId: announcement.id,
-                    announcementUserId: announcement.userId,
-                    currentUserId: currentUser.id,
-                    isOwn
-                });
-                return isOwn;
+                return announcement.userId != null && announcement.userId === currentUser.id;
             };
 
             lostAnnouncements.innerHTML = lostPets.map(pet => {
                 const ownerCheck = isOwner(pet);
-                console.log(`Объявление ${pet.id} (${pet.name}): владелец=${ownerCheck}, userId=${pet.userId}, currentUserId=${currentUser?.id}`);
                 const petType = pet.type_animal || pet.petType;
                 return `
                 <div class="pet-card" style="cursor: default;">
@@ -332,7 +322,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Функция отображения объявлений о найденных животных
     async function renderFoundAnnouncements() {
         if (!foundAnnouncements) {
-            console.warn('Элемент foundAnnouncements не найден');
             return;
         }
         
@@ -347,21 +336,13 @@ document.addEventListener('DOMContentLoaded', async function() {
             
             const foundPets = await AnnouncementsSystem.getFoundPets();
             const currentUser = AuthSystem.getCurrentUser();
-            console.log('Текущий пользователь для найденных:', currentUser);
             
             const isOwner = (announcement) => {
                 if (!currentUser) {
                     return false;
                 }
                 // Проверяем, что userId существует и совпадает
-                const isOwn = announcement.userId != null && announcement.userId === currentUser.id;
-                console.log('Проверка владельца (найденные):', {
-                    announcementId: announcement.id,
-                    announcementUserId: announcement.userId,
-                    currentUserId: currentUser.id,
-                    isOwn
-                });
-                return isOwn;
+                return announcement.userId != null && announcement.userId === currentUser.id;
             };
             
             if (foundPets.length === 0) {
@@ -371,7 +352,6 @@ document.addEventListener('DOMContentLoaded', async function() {
 
             foundAnnouncements.innerHTML = foundPets.map(pet => {
                 const ownerCheck = isOwner(pet);
-                console.log(`Объявление ${pet.id} (найдено): владелец=${ownerCheck}, userId=${pet.userId}, currentUserId=${currentUser?.id}`);
                 const petType = pet.type_animal || pet.petType;
                 return `
                 <div class="pet-card" style="cursor: default;">
@@ -443,9 +423,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Функция редактирования объявления
     window.editAnnouncement = async function(announcementId, type) {
         try {
-            console.log('Редактирование объявления:', { announcementId, type });
             const announcement = await AnnouncementsSystem.getAnnouncement(announcementId);
-            console.log('Объявление загружено:', announcement);
             if (!announcement) {
                 NotificationSystem.error('Объявление не найдено');
                 return;
@@ -465,7 +443,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
 
         try {
-            console.log('Удаление объявления:', announcementId);
             await AnnouncementsSystem.deleteAnnouncement(announcementId);
             NotificationSystem.success('Объявление успешно удалено');
             await renderAnnouncements();
@@ -487,7 +464,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
 
         try {
-            console.log('Отметка объявления:', announcementId, type);
             await AnnouncementsSystem.resolveAnnouncement(announcementId, type);
             
             const successMessage = type === 'lost' 
@@ -516,7 +492,6 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Функция открытия модального окна редактирования объявления
     function openEditAnnouncementModal(announcement, type) {
-        console.log('Открытие формы редактирования:', { announcement, type });
         const isLost = type === 'lost';
         const formId = isLost ? 'lostPetForm' : 'foundPetForm';
         const form = document.getElementById(formId);
@@ -527,7 +502,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             return;
         }
         
-        console.log('Форма найдена:', form);
 
         // Заполняем форму данными объявления
         if (isLost && announcement.name) {
