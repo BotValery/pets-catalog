@@ -1,3 +1,54 @@
+// Полифилл для File API (требуется для undici в Node.js 18+)
+// Это исправляет ошибку "ReferenceError: File is not defined"
+if (typeof global.File === 'undefined' && typeof File === 'undefined') {
+    const { ReadableStream } = require('stream/web');
+    
+    global.File = class File {
+        constructor(bits, name, options = {}) {
+            this.name = name || '';
+            this.lastModified = options.lastModified || Date.now();
+            this.size = 0;
+            this.type = options.type || '';
+            this.bits = bits;
+            if (Array.isArray(bits)) {
+                this.size = bits.reduce((total, bit) => {
+                    if (typeof bit === 'string') return total + bit.length;
+                    if (bit instanceof ArrayBuffer) return total + bit.byteLength;
+                    if (bit && bit.length) return total + bit.length;
+                    return total;
+                }, 0);
+            }
+        }
+        stream() {
+            return new ReadableStream({
+                start: (controller) => {
+                    if (Array.isArray(this.bits)) {
+                        this.bits.forEach(bit => controller.enqueue(bit));
+                    }
+                    controller.close();
+                }
+            });
+        }
+        async arrayBuffer() {
+            return new ArrayBuffer(this.size);
+        }
+        async text() {
+            return '';
+        }
+        slice(start, end, contentType) {
+            return new File([], this.name, { 
+                type: contentType || this.type,
+                lastModified: this.lastModified 
+            });
+        }
+    };
+    
+    // Также устанавливаем в глобальную область видимости
+    if (typeof globalThis !== 'undefined') {
+        globalThis.File = global.File;
+    }
+}
+
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
