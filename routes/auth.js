@@ -61,7 +61,7 @@ async function ensureAuthTables() {
                     viber TEXT,
                     telegram TEXT,
                     website TEXT,
-                    email TEXT,
+                    email TEXT UNIQUE,
                     password TEXT NOT NULL,
                     agreementAccepted BOOLEAN DEFAULT 0,
                     registeredAt DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -69,6 +69,57 @@ async function ensureAuthTables() {
             `);
             
             console.log('✅ Таблица shelters создана автоматически');
+        } else {
+            // Проверяем, нужно ли мигрировать таблицу (если email имеет NOT NULL constraint)
+            try {
+                const tableInfo = await db.get(
+                    "SELECT sql FROM sqlite_master WHERE type='table' AND name='shelters'"
+                );
+                
+                // Если в схеме есть "email TEXT UNIQUE NOT NULL", нужно мигрировать
+                if (tableInfo && tableInfo.sql && tableInfo.sql.includes('email TEXT UNIQUE NOT NULL')) {
+                    console.log('🔄 Миграция таблицы shelters: удаление NOT NULL constraint с email...');
+                    
+                    // Создаем временную таблицу с правильной схемой (email nullable, но с UNIQUE для не-NULL значений)
+                    await db.run(`
+                        CREATE TABLE IF NOT EXISTS shelters_new (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            shelterName TEXT NOT NULL,
+                            authorizedPerson TEXT,
+                            address TEXT,
+                            phone TEXT,
+                            viber TEXT,
+                            telegram TEXT,
+                            website TEXT,
+                            email TEXT UNIQUE,
+                            password TEXT NOT NULL,
+                            agreementAccepted BOOLEAN DEFAULT 0,
+                            registeredAt DATETIME DEFAULT CURRENT_TIMESTAMP
+                        )
+                    `);
+                    
+                    // Копируем данные из старой таблицы
+                    await db.run(`
+                        INSERT INTO shelters_new 
+                        (id, shelterName, authorizedPerson, address, phone, viber, telegram, website, email, password, agreementAccepted, registeredAt)
+                        SELECT id, shelterName, authorizedPerson, address, phone, viber, telegram, website, email, password, agreementAccepted, registeredAt
+                        FROM shelters
+                    `);
+                    
+                    // Удаляем старую таблицу
+                    await db.run('DROP TABLE shelters');
+                    
+                    // Переименовываем новую таблицу
+                    await db.run('ALTER TABLE shelters_new RENAME TO shelters');
+                    
+                    // UNIQUE constraint уже включен в определение колонки, дополнительный индекс не нужен
+                    
+                    console.log('✅ Миграция таблицы shelters завершена');
+                }
+            } catch (error) {
+                // Если миграция не удалась, логируем ошибку, но не прерываем работу
+                console.warn('⚠️  Предупреждение при проверке миграции shelters:', error.message);
+            }
         }
     } catch (error) {
         console.error('Ошибка создания таблиц auth:', error);

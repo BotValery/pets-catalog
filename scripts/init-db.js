@@ -54,7 +54,7 @@ async function initDatabase() {
                 viber TEXT,
                 telegram TEXT,
                 website TEXT,
-                email TEXT UNIQUE NOT NULL,
+                email TEXT UNIQUE,
                 password TEXT NOT NULL,
                 agreementAccepted BOOLEAN DEFAULT 0,
                 registeredAt DATETIME DEFAULT CURRENT_TIMESTAMP
