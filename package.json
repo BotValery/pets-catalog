@@ -12,6 +12,7 @@
         "add-userid-announcements": "node scripts/add-userid-to-announcements.js",
         "extract-docx": "node scripts/extract-docx-text.js",
         "clear-news": "node scripts/clear-news.js",
+        "clear-db": "node scripts/clear-database.js",
         "add-shops": "node scripts/add-shops-table.js",
         "add-clinics": "node scripts/add-clinics-table.js",
         "migrate-users": "node scripts/migrate-users-to-telegram.js",

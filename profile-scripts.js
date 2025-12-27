@@ -15,6 +15,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     const shelterProfileForm = document.getElementById('shelterProfileForm');
     const userLogoutBtn = document.getElementById('userLogoutBtn');
     const shelterLogoutBtn = document.getElementById('shelterLogoutBtn');
+    const userDeleteBtn = document.getElementById('userDeleteBtn');
+    const shelterDeleteBtn = document.getElementById('shelterDeleteBtn');
 
     // Проверяем авторизацию
     const currentUser = AuthSystem.getCurrentUser();
@@ -72,6 +74,19 @@ document.addEventListener('DOMContentLoaded', async function() {
                 AuthSystem.logout();
                 window.location.href = 'auth.html';
             }
+        });
+    }
+
+    // Обработчики удаления профиля
+    if (userDeleteBtn) {
+        userDeleteBtn.addEventListener('click', async function() {
+            await deleteUserProfile();
+        });
+    }
+
+    if (shelterDeleteBtn) {
+        shelterDeleteBtn.addEventListener('click', async function() {
+            await deleteShelterProfile();
         });
     }
 
@@ -304,6 +319,86 @@ document.addEventListener('DOMContentLoaded', async function() {
         } catch (error) {
             console.error('Ошибка сохранения профиля:', error);
             NotificationSystem.error('Произошла ошибка при сохранении профиля');
+        }
+    }
+
+    // Функция удаления профиля пользователя
+    async function deleteUserProfile() {
+        const currentUser = AuthSystem.getCurrentUser();
+        if (!currentUser || currentUser.type !== 'user') {
+            NotificationSystem.error('Ошибка авторизации');
+            return;
+        }
+
+        const confirmMessage = 'Вы уверены, что хотите удалить свой профиль?\n\n' +
+            'Это действие нельзя отменить. Все ваши объявления будут удалены.';
+        
+        if (!confirm(confirmMessage)) {
+            return;
+        }
+
+        // Дополнительное подтверждение
+        const doubleConfirm = confirm('Это действие окончательное. Вы действительно хотите удалить профиль?');
+        if (!doubleConfirm) {
+            return;
+        }
+
+        try {
+            await apiClient.deleteUser(currentUser.id);
+            
+            NotificationSystem.success('Профиль успешно удален');
+            
+            // Выходим из системы
+            AuthSystem.logout();
+            
+            // Перенаправляем на главную страницу
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1500);
+        } catch (error) {
+            console.error('Ошибка удаления профиля:', error);
+            const errorMessage = error.message || 'Ошибка удаления профиля';
+            NotificationSystem.error(errorMessage);
+        }
+    }
+
+    // Функция удаления профиля передержки
+    async function deleteShelterProfile() {
+        const currentUser = AuthSystem.getCurrentUser();
+        if (!currentUser || currentUser.type !== 'shelter') {
+            NotificationSystem.error('Ошибка авторизации');
+            return;
+        }
+
+        const confirmMessage = 'Вы уверены, что хотите удалить профиль передержки?\n\n' +
+            'Это действие нельзя отменить. Все ваши объявления и питомцы будут удалены.';
+        
+        if (!confirm(confirmMessage)) {
+            return;
+        }
+
+        // Дополнительное подтверждение
+        const doubleConfirm = confirm('Это действие окончательное. Вы действительно хотите удалить профиль передержки?');
+        if (!doubleConfirm) {
+            return;
+        }
+
+        try {
+            await apiClient.deleteShelter(currentUser.id);
+            
+            NotificationSystem.success('Профиль передержки успешно удален');
+            
+            // Выходим из системы
+            AuthSystem.logout();
+            
+            // Перенаправляем на главную страницу
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1500);
+        } catch (error) {
+            console.error('Ошибка удаления профиля передержки:', error);
+            const errorMessage = error.message || 'Ошибка удаления профиля передержки';
+            NotificationSystem.error(errorMessage);
         }
     }
 });

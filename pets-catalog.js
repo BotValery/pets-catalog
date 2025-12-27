@@ -92,12 +92,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                 }
                 
                 const formData = new FormData(addPetForm);
-                    name: formData.get('name'),
-                    type: formData.get('type'),
-                    breed: formData.get('breed'),
-                    ageYears: formData.get('ageYears'),
-                    ageMonths: formData.get('ageMonths')
-                });
                 
                 // Получаем годы и месяцы
                 let ageYears = parseInt(formData.get('ageYears')) || 0;
@@ -222,15 +216,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                     adopted: false,
                     createdAt: new Date().toISOString()
                 };
-                
-                    name: pet.name,
-                    type: pet.type,
-                    breed: pet.breed,
-                    ageYears: pet.ageYears,
-                    ageMonths: pet.ageMonths,
-                    photosCount: pet.photos.length,
-                    shelterId: pet.shelterId
-                });
                 
                 try {
                     // Проверяем, редактируем ли мы существующего питомца

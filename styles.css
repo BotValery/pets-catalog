@@ -2086,6 +2086,30 @@ footer {
     transform: translateY(0);
 }
 
+.btn-danger {
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+}
+
+.btn-danger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+}
+
+.btn-danger:active {
+    transform: translateY(0);
+}
+
 /* Специальные стили для кнопок в shelter-actions */
 .shelter-actions .btn-primary,
 .shelter-actions .btn-secondary {
@@ -2432,7 +2456,8 @@ footer {
 
 /* Специальные стили для кнопок в form-actions */
 .form-actions .btn-primary,
-.form-actions .btn-secondary {
+.form-actions .btn-secondary,
+.form-actions .btn-danger {
     flex: 1;
     min-width: 150px;
 }
@@ -3039,7 +3064,8 @@ input[readonly] {
     }
     
     .form-actions .btn-primary,
-    .form-actions .btn-secondary {
+    .form-actions .btn-secondary,
+    .form-actions .btn-danger {
         width: 100%;
     }
     

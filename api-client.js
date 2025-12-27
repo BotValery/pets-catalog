@@ -255,6 +255,12 @@ class ApiClient {
         });
     }
 
+    async deleteUser(id) {
+        return await this.request(`/users/${id}`, {
+            method: 'DELETE'
+        });
+    }
+
     // Передержки
     async getShelters() {
         return await this.request('/shelters');
@@ -268,6 +274,12 @@ class ApiClient {
         return await this.request(`/shelters/${id}`, {
             method: 'PUT',
             body: JSON.stringify(shelterData)
+        });
+    }
+
+    async deleteShelter(id) {
+        return await this.request(`/shelters/${id}`, {
+            method: 'DELETE'
         });
     }
 

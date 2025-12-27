@@ -69,5 +69,37 @@ router.put('/:id', authenticateToken, async (req, res) => {
     }
 });
 
+// Удалить пользователя
+router.delete('/:id', authenticateToken, async (req, res) => {
+    try {
+        // Пользователь может удалять только свой профиль, админ - любой
+        if (req.user.type !== 'admin' && req.user.id !== parseInt(req.params.id)) {
+            return res.status(403).json({ error: 'Нет доступа' });
+        }
+
+        const userId = parseInt(req.params.id);
+
+        // Проверяем существование пользователя
+        const user = await db.get('SELECT id FROM users WHERE id = ?', [userId]);
+        if (!user) {
+            return res.status(404).json({ error: 'Пользователь не найден' });
+        }
+
+        // Удаляем все объявления пользователя
+        await db.run('DELETE FROM announcements WHERE userId = ?', [userId]);
+
+        // Удаляем заявки пользователя (если есть)
+        await db.run('DELETE FROM applications WHERE userId = ?', [userId]);
+
+        // Удаляем пользователя
+        await db.run('DELETE FROM users WHERE id = ?', [userId]);
+
+        res.json({ message: 'Профиль и все связанные объявления успешно удалены' });
+    } catch (error) {
+        console.error('Ошибка удаления пользователя:', error);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
 module.exports = router;
 

@@ -102,5 +102,77 @@ router.put('/:id', authenticateToken, async (req, res) => {
     }
 });
 
+// Удалить передержку
+router.delete('/:id', authenticateToken, async (req, res) => {
+    try {
+        // Передержка может удалять только свой профиль, админ - любой
+        if (req.user.type !== 'admin' && req.user.id !== parseInt(req.params.id)) {
+            return res.status(403).json({ error: 'Нет доступа' });
+        }
+
+        const shelterId = parseInt(req.params.id);
+
+        // Проверяем существование передержки
+        const shelter = await db.get('SELECT id FROM shelters WHERE id = ?', [shelterId]);
+        if (!shelter) {
+            return res.status(404).json({ error: 'Передержка не найдена' });
+        }
+
+        // Удаляем все объявления передержки (если таблица существует)
+        try {
+            const announcementsTable = await db.get(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='announcements'"
+            );
+            if (announcementsTable) {
+                await db.run('DELETE FROM announcements WHERE userId = ?', [shelterId]);
+            }
+        } catch (error) {
+            console.warn('Предупреждение при удалении объявлений:', error.message);
+        }
+
+        // Удаляем заявки на питомцев передержки (сначала заявки, потом питомцев)
+        try {
+            const applicationsTable = await db.get(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='applications'"
+            );
+            const petsTable = await db.get(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='pets'"
+            );
+            
+            if (applicationsTable && petsTable) {
+                // Получаем ID питомцев передержки
+                const pets = await db.all('SELECT id FROM pets WHERE shelterId = ?', [shelterId]);
+                if (pets.length > 0) {
+                    const petIds = pets.map(p => p.id);
+                    const placeholders = petIds.map(() => '?').join(',');
+                    await db.run(`DELETE FROM applications WHERE petId IN (${placeholders})`, petIds);
+                }
+            }
+        } catch (error) {
+            console.warn('Предупреждение при удалении заявок:', error.message);
+        }
+
+        // Удаляем всех питомцев передержки
+        try {
+            const petsTable = await db.get(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='pets'"
+            );
+            if (petsTable) {
+                await db.run('DELETE FROM pets WHERE shelterId = ?', [shelterId]);
+            }
+        } catch (error) {
+            console.warn('Предупреждение при удалении питомцев:', error.message);
+        }
+
+        // Удаляем передержку
+        await db.run('DELETE FROM shelters WHERE id = ?', [shelterId]);
+
+        res.json({ message: 'Профиль передержки и все связанные объявления и питомцы успешно удалены' });
+    } catch (error) {
+        console.error('Ошибка удаления передержки:', error);
+        res.status(500).json({ error: 'Ошибка сервера', details: error.message });
+    }
+});
+
 module.exports = router;
 
