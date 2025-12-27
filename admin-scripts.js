@@ -519,12 +519,12 @@ function displayUsersAndShelters(users, shelters, filter) {
             // Карточка пользователя
             html += `
                 <div class="user-card">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
-                        <h4 style="margin: 0; flex: 1;">
+                    <div class="user-card-header">
+                        <h4>
                             ${data.name || 'Имя не указано'}
                             <span class="user-type-badge">Пользователь</span>
                         </h4>
-                        <button class="btn-secondary" onclick="deleteUser(${data.id})" style="padding: 0.5rem 1rem; font-size: 0.9rem; background: #d32f2f; color: white; border: none; margin-left: 1rem;" title="Удалить пользователя">🗑️ Удалить</button>
+                        <button class="btn-secondary" onclick="deleteUser(${data.id})" style="padding: 0.5rem 1rem; font-size: 0.9rem; background: #d32f2f; color: white; border: none; cursor: pointer; border-radius: 4px; white-space: nowrap;" title="Удалить пользователя">🗑️ Удалить</button>
                     </div>
                     <div class="user-info">
                         <p><strong>Email:</strong> ${data.email || 'Не указан'}</p>
@@ -539,12 +539,12 @@ function displayUsersAndShelters(users, shelters, filter) {
             // Карточка передержки
             html += `
                 <div class="shelter-card">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
-                        <h4 style="margin: 0; flex: 1;">
+                    <div class="shelter-card-header">
+                        <h4>
                             ${data.shelterName || 'Название не указано'}
                             <span class="shelter-type-badge">Передержка</span>
                         </h4>
-                        <button class="btn-secondary" onclick="deleteShelter(${data.id})" style="padding: 0.5rem 1rem; font-size: 0.9rem; background: #d32f2f; color: white; border: none; margin-left: 1rem;" title="Удалить передержку">🗑️ Удалить</button>
+                        <button class="btn-secondary" onclick="deleteShelter(${data.id})" style="padding: 0.5rem 1rem; font-size: 0.9rem; background: #d32f2f; color: white; border: none; cursor: pointer; border-radius: 4px; white-space: nowrap;" title="Удалить передержку">🗑️ Удалить</button>
                     </div>
                     <div class="shelter-info">
                         <p><strong>Email:</strong> ${data.email || 'Не указан'}</p>
