@@ -79,15 +79,25 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Обработчики удаления профиля
     if (userDeleteBtn) {
-        userDeleteBtn.addEventListener('click', async function() {
+        userDeleteBtn.addEventListener('click', async function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Кнопка удаления пользователя нажата');
             await deleteUserProfile();
         });
+    } else {
+        console.warn('Кнопка userDeleteBtn не найдена');
     }
 
     if (shelterDeleteBtn) {
-        shelterDeleteBtn.addEventListener('click', async function() {
+        shelterDeleteBtn.addEventListener('click', async function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Кнопка удаления передержки нажата');
             await deleteShelterProfile();
         });
+    } else {
+        console.warn('Кнопка shelterDeleteBtn не найдена');
     }
 
     // Функция загрузки профиля
@@ -324,6 +334,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Функция удаления профиля пользователя
     async function deleteUserProfile() {
+        console.log('deleteUserProfile вызвана');
         const currentUser = AuthSystem.getCurrentUser();
         if (!currentUser || currentUser.type !== 'user') {
             NotificationSystem.error('Ошибка авторизации');
@@ -333,37 +344,40 @@ document.addEventListener('DOMContentLoaded', async function() {
         const confirmMessage = 'Вы уверены, что хотите удалить свой профиль?\n\n' +
             'Это действие нельзя отменить. Все ваши объявления будут удалены.';
         
-        if (!confirm(confirmMessage)) {
-            return;
-        }
-
-        // Дополнительное подтверждение
-        const doubleConfirm = confirm('Это действие окончательное. Вы действительно хотите удалить профиль?');
-        if (!doubleConfirm) {
-            return;
-        }
-
-        try {
-            await apiClient.deleteUser(currentUser.id);
-            
-            NotificationSystem.success('Профиль успешно удален');
-            
-            // Выходим из системы
-            AuthSystem.logout();
-            
-            // Перенаправляем на главную страницу
-            setTimeout(() => {
-                window.location.href = 'index.html';
-            }, 1500);
-        } catch (error) {
-            console.error('Ошибка удаления профиля:', error);
-            const errorMessage = error.message || 'Ошибка удаления профиля';
-            NotificationSystem.error(errorMessage);
-        }
+        NotificationSystem.confirm(
+            confirmMessage,
+            async () => {
+                // Дополнительное подтверждение
+                NotificationSystem.confirm(
+                    'Это действие окончательное. Вы действительно хотите удалить профиль?',
+                    async () => {
+                        try {
+                            console.log('Удаление пользователя с ID:', currentUser.id);
+                            await apiClient.deleteUser(currentUser.id);
+                            
+                            NotificationSystem.success('Профиль успешно удален');
+                            
+                            // Выходим из системы
+                            AuthSystem.logout();
+                            
+                            // Перенаправляем на главную страницу
+                            setTimeout(() => {
+                                window.location.href = 'index.html';
+                            }, 1500);
+                        } catch (error) {
+                            console.error('Ошибка удаления профиля:', error);
+                            const errorMessage = error.message || 'Ошибка удаления профиля';
+                            NotificationSystem.error(errorMessage);
+                        }
+                    }
+                );
+            }
+        );
     }
 
     // Функция удаления профиля передержки
     async function deleteShelterProfile() {
+        console.log('deleteShelterProfile вызвана');
         const currentUser = AuthSystem.getCurrentUser();
         if (!currentUser || currentUser.type !== 'shelter') {
             NotificationSystem.error('Ошибка авторизации');
@@ -373,33 +387,35 @@ document.addEventListener('DOMContentLoaded', async function() {
         const confirmMessage = 'Вы уверены, что хотите удалить профиль передержки?\n\n' +
             'Это действие нельзя отменить. Все ваши объявления и питомцы будут удалены.';
         
-        if (!confirm(confirmMessage)) {
-            return;
-        }
-
-        // Дополнительное подтверждение
-        const doubleConfirm = confirm('Это действие окончательное. Вы действительно хотите удалить профиль передержки?');
-        if (!doubleConfirm) {
-            return;
-        }
-
-        try {
-            await apiClient.deleteShelter(currentUser.id);
-            
-            NotificationSystem.success('Профиль передержки успешно удален');
-            
-            // Выходим из системы
-            AuthSystem.logout();
-            
-            // Перенаправляем на главную страницу
-            setTimeout(() => {
-                window.location.href = 'index.html';
-            }, 1500);
-        } catch (error) {
-            console.error('Ошибка удаления профиля передержки:', error);
-            const errorMessage = error.message || 'Ошибка удаления профиля передержки';
-            NotificationSystem.error(errorMessage);
-        }
+        NotificationSystem.confirm(
+            confirmMessage,
+            async () => {
+                // Дополнительное подтверждение
+                NotificationSystem.confirm(
+                    'Это действие окончательное. Вы действительно хотите удалить профиль передержки?',
+                    async () => {
+                        try {
+                            console.log('Удаление передержки с ID:', currentUser.id);
+                            await apiClient.deleteShelter(currentUser.id);
+                            
+                            NotificationSystem.success('Профиль передержки успешно удален');
+                            
+                            // Выходим из системы
+                            AuthSystem.logout();
+                            
+                            // Перенаправляем на главную страницу
+                            setTimeout(() => {
+                                window.location.href = 'index.html';
+                            }, 1500);
+                        } catch (error) {
+                            console.error('Ошибка удаления профиля передержки:', error);
+                            const errorMessage = error.message || 'Ошибка удаления профиля передержки';
+                            NotificationSystem.error(errorMessage);
+                        }
+                    }
+                );
+            }
+        );
     }
 });
 
