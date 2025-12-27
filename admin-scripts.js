@@ -519,10 +519,13 @@ function displayUsersAndShelters(users, shelters, filter) {
             // Карточка пользователя
             html += `
                 <div class="user-card">
-                    <h4>
-                        ${data.name || 'Имя не указано'}
-                        <span class="user-type-badge">Пользователь</span>
-                    </h4>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                        <h4 style="margin: 0; flex: 1;">
+                            ${data.name || 'Имя не указано'}
+                            <span class="user-type-badge">Пользователь</span>
+                        </h4>
+                        <button class="btn-secondary" onclick="deleteUser(${data.id})" style="padding: 0.5rem 1rem; font-size: 0.9rem; background: #d32f2f; color: white; border: none; margin-left: 1rem;" title="Удалить пользователя">🗑️ Удалить</button>
+                    </div>
                     <div class="user-info">
                         <p><strong>Email:</strong> ${data.email || 'Не указан'}</p>
                         <p><strong>Телефон:</strong> ${data.phone || 'Не указан'}</p>
@@ -536,10 +539,13 @@ function displayUsersAndShelters(users, shelters, filter) {
             // Карточка передержки
             html += `
                 <div class="shelter-card">
-                    <h4>
-                        ${data.shelterName || 'Название не указано'}
-                        <span class="shelter-type-badge">Передержка</span>
-                    </h4>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                        <h4 style="margin: 0; flex: 1;">
+                            ${data.shelterName || 'Название не указано'}
+                            <span class="shelter-type-badge">Передержка</span>
+                        </h4>
+                        <button class="btn-secondary" onclick="deleteShelter(${data.id})" style="padding: 0.5rem 1rem; font-size: 0.9rem; background: #d32f2f; color: white; border: none; margin-left: 1rem;" title="Удалить передержку">🗑️ Удалить</button>
+                    </div>
                     <div class="shelter-info">
                         <p><strong>Email:</strong> ${data.email || 'Не указан'}</p>
                         <p><strong>Телефон:</strong> ${data.phone || 'Не указан'}</p>
@@ -1252,6 +1258,58 @@ window.deleteAdvice = function(adviceId) {
             } catch (error) {
                 console.error('Ошибка удаления совета:', error);
                 NotificationSystem.error('Ошибка удаления совета');
+            }
+        }
+    );
+};
+
+// Удаление пользователя
+window.deleteUser = function(userId) {
+    NotificationSystem.confirm(
+        'Вы уверены, что хотите удалить этого пользователя? Все его объявления и заявки также будут удалены.',
+        async () => {
+            try {
+                await apiClient.deleteUser(userId);
+                NotificationSystem.success('Пользователь успешно удален');
+                // Определяем текущий активный фильтр
+                const activeButton = document.querySelector('#usersTab .admin-tab-btn[data-subtab].active');
+                let currentFilter = 'all';
+                if (activeButton) {
+                    const subtab = activeButton.getAttribute('data-subtab');
+                    if (subtab === 'users-only') currentFilter = 'users';
+                    else if (subtab === 'shelters-only') currentFilter = 'shelters';
+                }
+                // Обновляем список пользователей и передержек с сохранением фильтра
+                loadUsersAndShelters(currentFilter);
+            } catch (error) {
+                console.error('Ошибка удаления пользователя:', error);
+                NotificationSystem.error(error.message || 'Ошибка удаления пользователя');
+            }
+        }
+    );
+};
+
+// Удаление передержки
+window.deleteShelter = function(shelterId) {
+    NotificationSystem.confirm(
+        'Вы уверены, что хотите удалить эту передержку? Все связанные данные также будут удалены.',
+        async () => {
+            try {
+                await apiClient.deleteShelter(shelterId);
+                NotificationSystem.success('Передержка успешно удалена');
+                // Определяем текущий активный фильтр
+                const activeButton = document.querySelector('#usersTab .admin-tab-btn[data-subtab].active');
+                let currentFilter = 'all';
+                if (activeButton) {
+                    const subtab = activeButton.getAttribute('data-subtab');
+                    if (subtab === 'users-only') currentFilter = 'users';
+                    else if (subtab === 'shelters-only') currentFilter = 'shelters';
+                }
+                // Обновляем список пользователей и передержек с сохранением фильтра
+                loadUsersAndShelters(currentFilter);
+            } catch (error) {
+                console.error('Ошибка удаления передержки:', error);
+                NotificationSystem.error(error.message || 'Ошибка удаления передержки');
             }
         }
     );
