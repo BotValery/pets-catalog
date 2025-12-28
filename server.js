@@ -52,6 +52,9 @@ if (typeof global.File === 'undefined' && typeof File === 'undefined') {
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const https = require('https');
+const http = require('http');
+const fs = require('fs');
 const cron = require('node-cron');
 const db = require('./config/database');
 const { syncNews } = require('./scripts/news-parser');
@@ -59,6 +62,21 @@ require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Загрузка SSL сертификатов для HTTPS
+const sslOptions = {
+    key: fs.readFileSync(path.join(__dirname, 'ssl/private.key'), 'utf8'),
+    cert: fs.readFileSync(path.join(__dirname, 'ssl/fullchain.crt'), 'utf8')
+};
+
+// Проверка наличия сертификатов
+try {
+    if (!fs.existsSync(path.join(__dirname, 'ssl/private.key'))) {
+        console.warn('⚠️  SSL сертификаты не найдены. HTTPS будет недоступен.');
+    }
+} catch (error) {
+    console.error('❌ Ошибка при проверке SSL сертификатов:', error.message);
+}
 
 // Инициализация базы данных
 db.connect().catch(err => {
@@ -127,10 +145,47 @@ cron.schedule('0 6 * * *', async () => {
 // cron.schedule('0 6,18 * * *', async () => { ... });
 
 
-// Запуск сервера
-app.listen(PORT, () => {
-    console.log(`🚀 Сервер запущен на порту ${PORT}`);
-    console.log(`📡 API доступен по адресу http://localhost:${PORT}/api`);
-    console.log(`🌐 Фронтенд доступен по адресу http://localhost:${PORT}`);
-});
+// Проверка наличия SSL сертификатов
+const hasSSLCertificates = fs.existsSync(path.join(__dirname, 'ssl/private.key')) && 
+                           fs.existsSync(path.join(__dirname, 'ssl/fullchain.crt'));
+
+if (hasSSLCertificates) {
+    // Запуск HTTPS сервера
+    const httpsServer = https.createServer(sslOptions, app);
+    
+    // HTTPS на порту 443 (требует root прав)
+    httpsServer.listen(443, '0.0.0.0', () => {
+        console.log('🔒 HTTPS сервер запущен на порту 443');
+        console.log(`📡 API доступен по адресу https://anodruzya.ru/api`);
+        console.log(`🌐 Фронтенд доступен по адресу https://anodruzya.ru`);
+    });
+
+    // HTTP сервер для редиректа на HTTPS (порт 80, требует root прав)
+    const httpServer = http.createServer((req, res) => {
+        // Редирект всех HTTP запросов на HTTPS
+        const host = req.headers.host || 'anodruzya.ru';
+        res.writeHead(301, {
+            'Location': `https://${host}${req.url}`
+        });
+        res.end();
+    });
+
+    httpServer.listen(80, '0.0.0.0', () => {
+        console.log('🔄 HTTP сервер запущен на порту 80 (редирект на HTTPS)');
+    });
+
+    // Также запускаем на обычном порту для разработки
+    app.listen(PORT, () => {
+        console.log(`🚀 HTTP сервер запущен на порту ${PORT} (для разработки)`);
+        console.log(`📡 API доступен по адресу http://localhost:${PORT}/api`);
+    });
+} else {
+    // Если сертификаты не найдены, запускаем только HTTP
+    console.warn('⚠️  SSL сертификаты не найдены. Запуск только HTTP сервера.');
+    app.listen(PORT, () => {
+        console.log(`🚀 Сервер запущен на порту ${PORT}`);
+        console.log(`📡 API доступен по адресу http://localhost:${PORT}/api`);
+        console.log(`🌐 Фронтенд доступен по адресу http://localhost:${PORT}`);
+    });
+}
 
