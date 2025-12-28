@@ -156,45 +156,57 @@ const hasSSLCertificates = sslOptions !== null &&
                            fs.existsSync(sslKeyPath) && 
                            fs.existsSync(sslCertPath);
 
-if (hasSSLCertificates && sslOptions) {
-    // Запуск HTTPS сервера
+// Проверка, используется ли Nginx (порт 80 занят)
+const checkNginx = () => {
+    try {
+        const { execSync } = require('child_process');
+        const result = execSync('netstat -tlnp 2>/dev/null | grep ":80 " || ss -tlnp 2>/dev/null | grep ":80 " || echo ""', { encoding: 'utf8' });
+        return result.includes('nginx');
+    } catch (e) {
+        return false;
+    }
+};
+
+const nginxInUse = checkNginx();
+
+if (hasSSLCertificates && sslOptions && !nginxInUse) {
+    // Если Nginx НЕ используется - запускаем HTTPS напрямую
     const httpsServer = https.createServer(sslOptions, app);
     
-    // HTTPS на порту 443 (требует root прав)
-    // ВАЖНО: Если используется Nginx, порт 443 должен быть настроен в Nginx, а не здесь
-    // Раскомментируйте следующую строку, только если НЕ используете Nginx:
-    /*
-    httpsServer.listen(443, '0.0.0.0', () => {
-        console.log('🔒 HTTPS сервер запущен на порту 443');
-        console.log(`📡 API доступен по адресу https://anodruzya.ru/api`);
-        console.log(`🌐 Фронтенд доступен по адресу https://anodruzya.ru`);
+    httpsServer.listen(443, '0.0.0.0', (err) => {
+        if (err) {
+            console.error('❌ Ошибка запуска HTTPS сервера:', err.message);
+        } else {
+            console.log('🔒 HTTPS сервер запущен на порту 443');
+            console.log(`📡 API доступен по адресу https://anodruzya.ru/api`);
+            console.log(`🌐 Фронтенд доступен по адресу https://anodruzya.ru`);
+        }
     });
-    */
 
-    // HTTP сервер для редиректа на HTTPS (порт 80, требует root прав)
-    // ВАЖНО: Если используется Nginx, порт 80 должен быть настроен в Nginx, а не здесь
-    // Раскомментируйте следующий блок, только если НЕ используете Nginx:
-    /*
     const httpServer = http.createServer((req, res) => {
-        // Редирект всех HTTP запросов на HTTPS
         const host = req.headers.host || 'anodruzya.ru';
-        res.writeHead(301, {
-            'Location': `https://${host}${req.url}`
-        });
+        res.writeHead(301, { 'Location': `https://${host}${req.url}` });
         res.end();
     });
 
-    httpServer.listen(80, '0.0.0.0', () => {
-        console.log('🔄 HTTP сервер запущен на порту 80 (редирект на HTTPS)');
+    httpServer.listen(80, '0.0.0.0', (err) => {
+        if (err) {
+            console.error('❌ Ошибка запуска HTTP сервера:', err.message);
+        } else {
+            console.log('🔄 HTTP сервер запущен на порту 80 (редирект на HTTPS)');
+        }
     });
-    */
 
-    // Запускаем на обычном порту (Nginx будет проксировать запросы сюда)
     app.listen(PORT, '127.0.0.1', () => {
-        console.log(`🚀 HTTP сервер запущен на порту ${PORT} (для Nginx proxy)`);
-        console.log(`📡 API доступен через Nginx: https://anodruzya.ru/api`);
-        console.log(`🌐 Фронтенд доступен через Nginx: https://anodruzya.ru`);
-        console.log(`💡 Для прямого доступа: http://localhost:${PORT}`);
+        console.log(`🚀 HTTP сервер запущен на порту ${PORT} (для разработки)`);
+    });
+} else if (nginxInUse) {
+    // Если Nginx используется - запускаем только на внутреннем порту
+    console.log('✅ Обнаружен Nginx. Запуск в режиме reverse proxy.');
+    app.listen(PORT, '127.0.0.1', () => {
+        console.log(`🚀 Сервер запущен на порту ${PORT} (для Nginx proxy)`);
+        console.log(`📡 Nginx проксирует запросы на http://127.0.0.1:${PORT}`);
+        console.log(`🌐 Сайт доступен через Nginx: https://anodruzya.ru`);
     });
 } else {
     // Если сертификаты не найдены, запускаем только HTTP
