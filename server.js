@@ -63,19 +63,25 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Загрузка SSL сертификатов для HTTPS
-const sslOptions = {
-    key: fs.readFileSync(path.join(__dirname, 'ssl/private.key'), 'utf8'),
-    cert: fs.readFileSync(path.join(__dirname, 'ssl/fullchain.crt'), 'utf8')
-};
+// Загрузка SSL сертификатов для HTTPS (только если файлы существуют)
+let sslOptions = null;
+const sslKeyPath = path.join(__dirname, 'ssl/private.key');
+const sslCertPath = path.join(__dirname, 'ssl/fullchain.crt');
 
-// Проверка наличия сертификатов
 try {
-    if (!fs.existsSync(path.join(__dirname, 'ssl/private.key'))) {
+    if (fs.existsSync(sslKeyPath) && fs.existsSync(sslCertPath)) {
+        sslOptions = {
+            key: fs.readFileSync(sslKeyPath, 'utf8'),
+            cert: fs.readFileSync(sslCertPath, 'utf8')
+        };
+        console.log('✅ SSL сертификаты загружены успешно');
+    } else {
         console.warn('⚠️  SSL сертификаты не найдены. HTTPS будет недоступен.');
+        console.warn(`   Проверьте наличие файлов: ${sslKeyPath} и ${sslCertPath}`);
     }
 } catch (error) {
-    console.error('❌ Ошибка при проверке SSL сертификатов:', error.message);
+    console.error('❌ Ошибка при загрузке SSL сертификатов:', error.message);
+    console.error('   Приложение будет работать только по HTTP');
 }
 
 // Инициализация базы данных
@@ -146,10 +152,11 @@ cron.schedule('0 6 * * *', async () => {
 
 
 // Проверка наличия SSL сертификатов
-const hasSSLCertificates = fs.existsSync(path.join(__dirname, 'ssl/private.key')) && 
-                           fs.existsSync(path.join(__dirname, 'ssl/fullchain.crt'));
+const hasSSLCertificates = sslOptions !== null && 
+                           fs.existsSync(sslKeyPath) && 
+                           fs.existsSync(sslCertPath);
 
-if (hasSSLCertificates) {
+if (hasSSLCertificates && sslOptions) {
     // Запуск HTTPS сервера
     const httpsServer = https.createServer(sslOptions, app);
     
