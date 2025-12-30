@@ -807,6 +807,20 @@ document.addEventListener('DOMContentLoaded', function() {
     if (adviceForm) {
         adviceForm.addEventListener('submit', async function(e) {
             e.preventDefault();
+            e.stopPropagation(); // Останавливаем всплытие события
+            
+            // Проверяем, что это действительно форма совета
+            if (this.id !== 'adviceForm') {
+                console.error('❌ Это не форма совета! ID:', this.id);
+                return;
+            }
+            
+            // Проверяем наличие обязательных полей формы совета
+            const adviceTitle = document.getElementById('adviceTitle');
+            if (!adviceTitle) {
+                console.error('❌ Поле adviceTitle не найдено! Это не форма совета.');
+                return;
+            }
             
             const adviceId = this.dataset.adviceId;
             const tipsText = document.getElementById('adviceTips').value.trim();
@@ -903,6 +917,21 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('✅ Обработчик формы ветклиники зарегистрирован');
         clinicForm.addEventListener('submit', async function(e) {
             e.preventDefault();
+            e.stopPropagation(); // Останавливаем всплытие события
+            
+            // Проверяем, что это действительно форма ветклиники
+            if (this.id !== 'clinicForm') {
+                console.error('❌ Это не форма ветклиники! ID:', this.id);
+                return;
+            }
+            
+            // Проверяем наличие обязательных полей формы ветклиники
+            const clinicName = document.getElementById('clinicName');
+            if (!clinicName) {
+                console.error('❌ Поле clinicName не найдено! Это не форма ветклиники.');
+                return;
+            }
+            
             console.log('💾 Сохранение ветклиники...');
             
             const clinicId = this.dataset.clinicId;
