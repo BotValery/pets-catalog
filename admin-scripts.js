@@ -35,6 +35,7 @@ function initTabs() {
     tabButtons.forEach(btn => {
         btn.addEventListener('click', function() {
             const tabName = this.dataset.tab;
+            console.log('🔀 Переключение на вкладку:', tabName);
             
             // Убираем активный класс у всех кнопок и контента
             tabButtons.forEach(b => b.classList.remove('active'));
@@ -45,6 +46,9 @@ function initTabs() {
             const targetTab = document.getElementById(tabName + 'Tab');
             if (targetTab) {
                 targetTab.classList.add('active');
+                console.log('✅ Вкладка активирована:', tabName + 'Tab');
+            } else {
+                console.error('❌ Вкладка не найдена:', tabName + 'Tab');
             }
             
             // Загружаем данные для выбранной вкладки
@@ -896,8 +900,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Обработка формы ветклиники
     const clinicForm = document.getElementById('clinicForm');
     if (clinicForm) {
+        console.log('✅ Обработчик формы ветклиники зарегистрирован');
         clinicForm.addEventListener('submit', async function(e) {
             e.preventDefault();
+            console.log('💾 Сохранение ветклиники...');
             
             const clinicId = this.dataset.clinicId;
             const clinicData = {
@@ -908,24 +914,32 @@ document.addEventListener('DOMContentLoaded', function() {
                 services: document.getElementById('clinicServices').value.trim()
             };
             
+            console.log('📝 Данные ветклиники:', clinicData);
+            console.log('🆔 ID ветклиники (для обновления):', clinicId || 'новый');
+            
             try {
                 if (clinicId) {
                     // Обновление
+                    console.log('🔄 Обновление ветклиники...');
                     await apiClient.updateClinic(clinicId, clinicData);
                     NotificationSystem.success('Ветклиника успешно обновлена');
                 } else {
                     // Создание
+                    console.log('➕ Создание новой ветклиники...');
                     await apiClient.createClinic(clinicData);
                     NotificationSystem.success('Ветклиника успешно создана');
                 }
                 
+                console.log('✅ Ветклиника сохранена, закрываем модальное окно и обновляем список');
                 closeClinicModal();
                 loadClinics();
             } catch (error) {
-                console.error('Ошибка сохранения ветклиники:', error);
+                console.error('❌ Ошибка сохранения ветклиники:', error);
                 NotificationSystem.error(error.message || 'Ошибка сохранения ветклиники');
             }
         });
+    } else {
+        console.error('❌ Форма clinicForm не найдена!');
     }
     
     // Закрытие модального окна ветклиники при клике вне его
@@ -1044,14 +1058,21 @@ window.deleteShop = function(shopId) {
 // Загрузка ветклиник
 async function loadClinics() {
     try {
+        console.log('🔄 Загрузка ветклиник...');
         const clinicsData = await apiClient.getClinics();
+        console.log('📦 Данные ветклиник получены:', clinicsData);
         const clinics = clinicsData.clinics || [];
+        console.log('🏥 Количество ветклиник:', clinics.length);
         
         const clinicsList = document.getElementById('clinicsList');
-        if (!clinicsList) return;
+        if (!clinicsList) {
+            console.error('❌ Элемент clinicsList не найден!');
+            return;
+        }
         
         if (clinics.length === 0) {
             clinicsList.innerHTML = '<div class="no-adopted-pets">Ветклиники не найдены</div>';
+            console.log('ℹ️  Ветклиники не найдены');
             return;
         }
         
@@ -1072,9 +1093,15 @@ async function loadClinics() {
                 ${clinic.services ? `<p style="margin-top: 0.5rem;"><strong>🩺 Услуги:</strong> ${clinic.services}</p>` : ''}
             </div>
         `).join('');
+        console.log('✅ Ветклиники отображены');
     } catch (error) {
-        console.error('Ошибка загрузки ветклиник:', error);
-        NotificationSystem.error('Ошибка загрузки ветклиник');
+        console.error('❌ Ошибка загрузки ветклиник:', error);
+        NotificationSystem.error('Ошибка загрузки ветклиник: ' + (error.message || 'Неизвестная ошибка'));
+        
+        const clinicsList = document.getElementById('clinicsList');
+        if (clinicsList) {
+            clinicsList.innerHTML = '<div class="no-adopted-pets" style="color: #e53e3e;">Ошибка загрузки ветклиник. Проверьте консоль для деталей.</div>';
+        }
     }
 }
 
