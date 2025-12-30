@@ -18,6 +18,88 @@ const VTB_SUCCESS_URL = process.env.VTB_SUCCESS_URL || 'https://anodruzya.ru/don
 const VTB_FAIL_URL = process.env.VTB_FAIL_URL || 'https://anodruzya.ru/donation-fail.html';
 const VTB_MODE = process.env.VTB_MODE || 'test'; // test или production
 
+// Кэш для access_token (чтобы не получать токен при каждом запросе)
+let vtbAccessToken = null;
+let vtbTokenExpiresAt = null;
+
+// Получение access_token через OAuth2 (согласно документации ВТБ раздел 4.16.1)
+async function getVtbAccessToken() {
+    // Проверяем, есть ли валидный токен в кэше
+    if (vtbAccessToken && vtbTokenExpiresAt && Date.now() < vtbTokenExpiresAt) {
+        console.log('✅ Используем кэшированный access_token');
+        return vtbAccessToken;
+    }
+
+    try {
+        console.log('🔄 Получение access_token через OAuth2...');
+        
+        // URL для получения токена (тестовая среда)
+        // Согласно документации, endpoint может быть /oauth/token или /token
+        const tokenUrl = VTB_API_BASE_URL.replace('/api/v1', '') + '/oauth/token';
+        
+        // Альтернативные варианты URL для токена
+        const tokenUrls = [
+            tokenUrl,
+            VTB_API_BASE_URL.replace('/api/v1', '') + '/token',
+            'https://hackaton.bankingapi.ru/oauth/token',
+            'https://hackaton.bankingapi.ru/token'
+        ];
+
+        let tokenResponse = null;
+        let lastError = null;
+
+        // Пробуем разные варианты URL
+        for (const url of tokenUrls) {
+            try {
+                console.log(`🔍 Попытка получить токен с URL: ${url}`);
+                tokenResponse = await axios.post(
+                    url,
+                    new URLSearchParams({
+                        grant_type: 'client_credentials',
+                        client_id: VTB_CLIENT_ID,
+                        client_secret: VTB_CLIENT_SECRET
+                    }),
+                    {
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        timeout: 10000
+                    }
+                );
+                
+                if (tokenResponse.status === 200 && tokenResponse.data.access_token) {
+                    console.log('✅ Токен успешно получен');
+                    break;
+                }
+            } catch (error) {
+                console.warn(`⚠️ Не удалось получить токен с ${url}:`, error.message);
+                lastError = error;
+                continue;
+            }
+        }
+
+        if (!tokenResponse || !tokenResponse.data.access_token) {
+            throw new Error('Не удалось получить access_token. Проверьте client_id и client_secret.');
+        }
+
+        vtbAccessToken = tokenResponse.data.access_token;
+        // Токен обычно действителен 3600 секунд (1 час), но используем 3300 для безопасности
+        const expiresIn = tokenResponse.data.expires_in || 3300;
+        vtbTokenExpiresAt = Date.now() + (expiresIn * 1000);
+
+        console.log('✅ Access_token получен и сохранен в кэш');
+        return vtbAccessToken;
+
+    } catch (error) {
+        console.error('❌ Ошибка получения access_token:', {
+            message: error.message,
+            response: error.response?.data,
+            status: error.response?.status
+        });
+        throw error;
+    }
+}
+
 // Проверка и создание таблицы donations, если её нет
 async function ensureDonationsTable() {
     try {
@@ -138,15 +220,35 @@ router.post('/create-payment', [
             console.log('📤 Данные для отправки в ВТБ:', JSON.stringify(paymentData, null, 2));
 
             // Авторизация для ВТБ API согласно документации
-            // Согласно разделу 4.4 "Безопасность использования API":
-            // Нужны ОБА заголовка:
-            // 1. Authorization: Basic (для OAuth2 аутентификации с client_id и client_secret)
-            // 2. Merchant-Authorization (для идентификации мерчанта)
+            // Согласно разделу 4.4 "Безопасность использования API" и 4.16.1:
+            // Для тестовой среды нужно получить access_token через OAuth2
+            // Затем использовать его в заголовке Authorization: Bearer <token>
+            // И также нужен заголовок Merchant-Authorization
+            
+            let accessToken;
+            try {
+                // Пробуем получить access_token
+                accessToken = await getVtbAccessToken();
+            } catch (tokenError) {
+                console.warn('⚠️ Не удалось получить access_token, используем Basic Auth как fallback');
+                console.warn('⚠️ Ошибка получения токена:', tokenError.message);
+                // Если не удалось получить токен, используем Basic Auth как fallback
+                accessToken = null;
+            }
+
             const headers = {
                 'Content-Type': 'application/json',
-                'Authorization': `Basic ${Buffer.from(`${VTB_CLIENT_ID}:${VTB_CLIENT_SECRET}`).toString('base64')}`,
                 'Merchant-Authorization': VTB_MERCHANT_AUTH
             };
+
+            // Используем Bearer токен, если получен, иначе Basic Auth
+            if (accessToken) {
+                headers['Authorization'] = `Bearer ${accessToken}`;
+                console.log('🔐 Используется Authorization: Bearer <token>');
+            } else {
+                headers['Authorization'] = `Basic ${Buffer.from(`${VTB_CLIENT_ID}:${VTB_CLIENT_SECRET}`).toString('base64')}`;
+                console.log('🔐 Используется Authorization: Basic (fallback)');
+            }
 
             console.log('🔐 Заголовки авторизации:', {
                 hasAuth: !!headers.Authorization,
