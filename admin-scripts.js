@@ -892,6 +892,51 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // Обработка формы ветклиники
+    const clinicForm = document.getElementById('clinicForm');
+    if (clinicForm) {
+        clinicForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const clinicId = this.dataset.clinicId;
+            const clinicData = {
+                name: document.getElementById('clinicName').value.trim(),
+                address: document.getElementById('clinicAddress').value.trim(),
+                phone: document.getElementById('clinicPhone').value.trim(),
+                hours: document.getElementById('clinicHours').value.trim(),
+                services: document.getElementById('clinicServices').value.trim()
+            };
+            
+            try {
+                if (clinicId) {
+                    // Обновление
+                    await apiClient.updateClinic(clinicId, clinicData);
+                    NotificationSystem.success('Ветклиника успешно обновлена');
+                } else {
+                    // Создание
+                    await apiClient.createClinic(clinicData);
+                    NotificationSystem.success('Ветклиника успешно создана');
+                }
+                
+                closeClinicModal();
+                loadClinics();
+            } catch (error) {
+                console.error('Ошибка сохранения ветклиники:', error);
+                NotificationSystem.error(error.message || 'Ошибка сохранения ветклиники');
+            }
+        });
+    }
+    
+    // Закрытие модального окна ветклиники при клике вне его
+    const clinicModal = document.getElementById('clinicModal');
+    if (clinicModal) {
+        clinicModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeClinicModal();
+            }
+        });
+    }
 });
 
 // Загрузка зоомагазинов
