@@ -197,7 +197,25 @@ router.post('/create-payment', [
             
             // Проверяем статус ответа
             if (vtbResponse.status >= 400) {
-                throw new Error(`ВТБ API вернул ошибку: ${vtbResponse.status} - ${JSON.stringify(vtbResponse.data)}`);
+                const errorData = vtbResponse.data;
+                const errorMessage = errorData?.message || 
+                                    errorData?.error?.message || 
+                                    errorData?.error ||
+                                    `ВТБ API вернул ошибку: ${vtbResponse.status}`;
+                
+                console.error('❌ ВТБ API вернул ошибку:', {
+                    status: vtbResponse.status,
+                    statusText: vtbResponse.statusText,
+                    data: errorData,
+                    headers: vtbResponse.headers,
+                    errorMessage: errorMessage
+                });
+                
+                // Бросаем ошибку с понятным сообщением
+                const error = new Error(errorMessage);
+                error.status = vtbResponse.status;
+                error.responseData = errorData;
+                throw error;
             }
 
             // TODO: Обновите обработку ответа согласно PDF инструкции ВТБ
@@ -216,12 +234,23 @@ router.post('/create-payment', [
             console.log('📦 Структура ответа от ВТБ:', JSON.stringify(vtbResponse.data, null, 2));
             
             // Извлекаем данные из ответа
-            const vtbOrderId = vtbResponse.data.orderId || orderId;
-            const confirmationUrl = vtbResponse.data.formUrl; // URL для редиректа на страницу оплаты
+            // Проверяем различные возможные варианты структуры ответа
+            const responseData = vtbResponse.data;
+            const vtbOrderId = responseData.orderId || orderId;
+            
+            // Пытаемся найти URL для редиректа в разных возможных полях
+            const confirmationUrl = responseData.formUrl || 
+                                  responseData.paymentUrl ||
+                                  responseData.url ||
+                                  responseData.redirectUrl ||
+                                  responseData.confirmationUrl;
             
             if (!confirmationUrl) {
-                console.error('❌ ВТБ API не вернул formUrl в ответе:', vtbResponse.data);
-                throw new Error('ВТБ API не вернул formUrl для редиректа на страницу оплаты');
+                console.error('❌ ВТБ API не вернул URL для редиректа в ответе:', {
+                    responseData: responseData,
+                    availableFields: Object.keys(responseData || {})
+                });
+                throw new Error('ВТБ API не вернул URL для редиректа на страницу оплаты. Проверьте структуру ответа в логах.');
             }
             
             console.log('🔗 URL для редиректа:', confirmationUrl);
