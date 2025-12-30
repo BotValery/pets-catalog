@@ -139,9 +139,12 @@ router.post('/create-payment', [
 
             // Авторизация для ВТБ API согласно документации
             // Согласно разделу 4.4 "Безопасность использования API":
-            // Используется заголовок Merchant-Authorization для аутентификации
+            // Нужны ОБА заголовка:
+            // 1. Authorization: Basic (для OAuth2 аутентификации с client_id и client_secret)
+            // 2. Merchant-Authorization (для идентификации мерчанта)
             const headers = {
                 'Content-Type': 'application/json',
+                'Authorization': `Basic ${Buffer.from(`${VTB_CLIENT_ID}:${VTB_CLIENT_SECRET}`).toString('base64')}`,
                 'Merchant-Authorization': VTB_MERCHANT_AUTH
             };
 
