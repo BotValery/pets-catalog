@@ -164,16 +164,30 @@ router.post('/create-payment', [
             
             // Отправляем запрос на создание платежа
             console.log('📡 Отправка запроса в ВТБ API...');
+            console.log('⏱️ Таймаут установлен: 30 секунд');
+            
             const vtbResponse = await axios.post(
                 fullUrl,
                 paymentData,
-                { headers }
+                { 
+                    headers,
+                    timeout: 30000, // 30 секунд таймаут
+                    validateStatus: function (status) {
+                        // Принимаем любые статусы для логирования
+                        return status >= 200 && status < 600;
+                    }
+                }
             );
             
             console.log('✅ Получен ответ от ВТБ:', {
                 status: vtbResponse.status,
                 data: vtbResponse.data
             });
+            
+            // Проверяем статус ответа
+            if (vtbResponse.status >= 400) {
+                throw new Error(`ВТБ API вернул ошибку: ${vtbResponse.status} - ${JSON.stringify(vtbResponse.data)}`);
+            }
 
             // TODO: Обновите обработку ответа согласно PDF инструкции ВТБ
             // Типичные варианты получения URL для редиректа:
@@ -203,24 +217,43 @@ router.post('/create-payment', [
             });
 
         } catch (vtbError) {
+            // Проверяем, это таймаут или другая ошибка
+            const isTimeout = vtbError.code === 'ECONNABORTED' || vtbError.message.includes('timeout');
+            const isNetworkError = vtbError.code === 'ECONNREFUSED' || vtbError.code === 'ENOTFOUND';
+            
             console.error('❌ Ошибка создания платежа в ВТБ:', {
                 message: vtbError.message,
+                code: vtbError.code,
+                isTimeout: isTimeout,
+                isNetworkError: isNetworkError,
                 response: vtbError.response?.data,
                 status: vtbError.response?.status,
                 config: {
                     url: vtbError.config?.url,
-                    method: vtbError.config?.method
+                    method: vtbError.config?.method,
+                    timeout: vtbError.config?.timeout
                 }
             });
 
-            const errorMessage = vtbError.response?.data?.message || 
-                                vtbError.response?.data?.error?.message ||
-                                vtbError.message ||
-                                'Ошибка создания платежа';
+            let errorMessage;
+            if (isTimeout) {
+                errorMessage = 'Таймаут при обращении к платежной системе. Попробуйте позже.';
+            } else if (isNetworkError) {
+                errorMessage = 'Не удалось подключиться к платежной системе. Проверьте URL API.';
+            } else {
+                errorMessage = vtbError.response?.data?.message || 
+                              vtbError.response?.data?.error?.message ||
+                              vtbError.message ||
+                              'Ошибка создания платежа';
+            }
 
             res.status(500).json({ 
                 error: 'Ошибка создания платежа',
-                message: errorMessage
+                message: errorMessage,
+                details: process.env.NODE_ENV !== 'production' ? {
+                    code: vtbError.code,
+                    url: vtbError.config?.url
+                } : undefined
             });
         }
 
