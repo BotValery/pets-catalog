@@ -122,7 +122,16 @@ router.post('/', authenticateToken, requireAdmin, [
             [title, author, date, category, content, tipsJson]
         );
 
-        const newAdvice = await db.get('SELECT * FROM advice WHERE id = ?', [result.lastID]);
+        // Получаем ID созданного совета
+        const adviceId = result.id || result.lastID;
+        if (!adviceId) {
+            throw new Error('Не удалось получить ID созданного совета');
+        }
+
+        const newAdvice = await db.get('SELECT * FROM advice WHERE id = ?', [adviceId]);
+        if (!newAdvice) {
+            throw new Error('Не удалось получить созданный совет из базы данных');
+        }
         
         // Парсим tips из JSON строки
         let parsedTips = [];
@@ -131,6 +140,7 @@ router.post('/', authenticateToken, requireAdmin, [
                 parsedTips = JSON.parse(newAdvice.tips);
             } catch (parseError) {
                 console.warn('Ошибка парсинга tips для нового совета', newAdvice.id, parseError);
+                parsedTips = [];
             }
         }
 
@@ -187,6 +197,9 @@ router.put('/:id', authenticateToken, requireAdmin, [
         );
 
         const updatedAdvice = await db.get('SELECT * FROM advice WHERE id = ?', [req.params.id]);
+        if (!updatedAdvice) {
+            return res.status(404).json({ error: 'Совет не найден после обновления' });
+        }
         
         // Парсим tips из JSON строки
         let parsedTips = [];
@@ -195,6 +208,7 @@ router.put('/:id', authenticateToken, requireAdmin, [
                 parsedTips = JSON.parse(updatedAdvice.tips);
             } catch (parseError) {
                 console.warn('Ошибка парсинга tips для обновленного совета', updatedAdvice.id, parseError);
+                parsedTips = [];
             }
         }
 

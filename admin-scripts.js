@@ -802,27 +802,24 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Обработка формы совета ветеринара
-    const adviceForm = document.getElementById('adviceForm');
-    if (adviceForm) {
-        adviceForm.addEventListener('submit', async function(e) {
+    // Обработка формы совета ветеринара через делегирование событий
+    // Используем делегирование, так как форма может быть в скрытом модальном окне
+    document.addEventListener('submit', async function(e) {
+        const form = e.target;
+        
+        // Проверяем, что это форма совета
+        if (form.id === 'adviceForm') {
             e.preventDefault();
-            e.stopPropagation(); // Останавливаем всплытие события
-            
-            // Проверяем, что это действительно форма совета
-            if (this.id !== 'adviceForm') {
-                console.error('❌ Это не форма совета! ID:', this.id);
-                return;
-            }
+            e.stopPropagation();
             
             // Проверяем наличие обязательных полей формы совета
             const adviceTitle = document.getElementById('adviceTitle');
             if (!adviceTitle) {
-                console.error('❌ Поле adviceTitle не найдено! Это не форма совета.');
+                console.error('❌ Поле adviceTitle не найдено!');
                 return;
             }
             
-            const adviceId = this.dataset.adviceId;
+            const adviceId = form.dataset.adviceId;
             const tipsText = document.getElementById('adviceTips').value.trim();
             const tips = tipsText.split('\n').filter(tip => tip.trim() !== '').map(tip => tip.trim());
             
@@ -852,8 +849,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error('Ошибка сохранения совета:', error);
                 NotificationSystem.error(error.message || 'Ошибка сохранения совета');
             }
-        });
-    }
+        }
+    });
     
     // Закрытие модального окна при клике вне его
     const adviceModal = document.getElementById('adviceModal');
@@ -911,30 +908,26 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Обработка формы ветклиники
-    const clinicForm = document.getElementById('clinicForm');
-    if (clinicForm) {
-        console.log('✅ Обработчик формы ветклиники зарегистрирован');
-        clinicForm.addEventListener('submit', async function(e) {
+    // Обработка формы ветклиники через делегирование событий
+    // Используем делегирование, так как форма может быть в скрытом модальном окне
+    document.addEventListener('submit', async function(e) {
+        const form = e.target;
+        
+        // Проверяем, что это форма ветклиники
+        if (form.id === 'clinicForm') {
             e.preventDefault();
-            e.stopPropagation(); // Останавливаем всплытие события
+            e.stopPropagation();
             
-            // Проверяем, что это действительно форма ветклиники
-            if (this.id !== 'clinicForm') {
-                console.error('❌ Это не форма ветклиники! ID:', this.id);
-                return;
-            }
+            console.log('💾 Сохранение ветклиники...');
             
             // Проверяем наличие обязательных полей формы ветклиники
             const clinicName = document.getElementById('clinicName');
             if (!clinicName) {
-                console.error('❌ Поле clinicName не найдено! Это не форма ветклиники.');
+                console.error('❌ Поле clinicName не найдено!');
                 return;
             }
             
-            console.log('💾 Сохранение ветклиники...');
-            
-            const clinicId = this.dataset.clinicId;
+            const clinicId = form.dataset.clinicId;
             const clinicData = {
                 name: document.getElementById('clinicName').value.trim(),
                 address: document.getElementById('clinicAddress').value.trim(),
@@ -966,10 +959,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error('❌ Ошибка сохранения ветклиники:', error);
                 NotificationSystem.error(error.message || 'Ошибка сохранения ветклиники');
             }
-        });
-    } else {
-        console.error('❌ Форма clinicForm не найдена!');
-    }
+        }
+    });
     
     // Закрытие модального окна ветклиники при клике вне его
     const clinicModal = document.getElementById('clinicModal');
