@@ -8,7 +8,8 @@ const router = express.Router();
 
 // Конфигурация ВТБ API
 // Данные для тестового интернет-эквайринга ВТБ
-const VTB_API_URL = process.env.VTB_API_URL || 'https://api.vtb.ru'; // URL API ВТБ (уточните для тестового режима)
+// Тестовый URL (Песочница): https://hackaton.bankingapi.ru/api/smb/efcp/e-commerce/api/v1/{наименование_эндпоинта}
+const VTB_API_BASE_URL = process.env.VTB_API_URL || 'https://hackaton.bankingapi.ru/api/smb/efcp/e-commerce/api/v1';
 const VTB_CLIENT_ID = process.env.VTB_CLIENT_ID; // client_id из письма
 const VTB_CLIENT_SECRET = process.env.VTB_CLIENT_SECRET; // client_secret из письма
 const VTB_MERCHANT_AUTH = process.env.VTB_MERCHANT_AUTHORIZATION; // Merchant-Authorization из письма
@@ -89,7 +90,7 @@ router.post('/create-payment', [
             VTB_CLIENT_ID: VTB_CLIENT_ID ? '✅' : '❌',
             VTB_CLIENT_SECRET: VTB_CLIENT_SECRET ? '✅' : '❌',
             VTB_MERCHANT_AUTH: VTB_MERCHANT_AUTH ? '✅' : '❌',
-            VTB_API_URL: VTB_API_URL
+            VTB_API_BASE_URL: VTB_API_BASE_URL
         });
         
         if (!VTB_CLIENT_ID || !VTB_CLIENT_SECRET || !VTB_MERCHANT_AUTH) {
@@ -114,7 +115,7 @@ router.post('/create-payment', [
                 hasClientId: !!VTB_CLIENT_ID,
                 hasClientSecret: !!VTB_CLIENT_SECRET,
                 hasMerchantAuth: !!VTB_MERCHANT_AUTH,
-                apiUrl: VTB_API_URL
+                apiBaseUrl: VTB_API_BASE_URL
             });
             
             // Структура запроса для создания платежа в ВТБ
@@ -151,16 +152,26 @@ router.post('/create-payment', [
                 authLength: headers.Authorization?.length
             });
 
-            // TODO: Обновите endpoint согласно PDF инструкции ВТБ
-            // Типичные варианты:
-            // - POST /api/v1/payments
-            // - POST /api/payment/create
-            // - POST /payment/init
-            // - POST /gateway/payment
-            const paymentEndpoint = '/api/v1/payments'; // Замените на endpoint из документации
-            const fullUrl = `${VTB_API_URL}${paymentEndpoint}`;
+            // Endpoint для создания платежа согласно документации ВТБ
+            // Формат URL: https://hackaton.bankingapi.ru/api/smb/efcp/e-commerce/api/v1/{наименование_эндпоинта}
+            const paymentEndpoint = '/orders'; // Endpoint из документации ВТБ
+            const fullUrl = `${VTB_API_BASE_URL}${paymentEndpoint}`;
             
             console.log('🌐 URL для запроса:', fullUrl);
+            console.log('📋 Endpoint:', paymentEndpoint);
+            
+            // Проверка доступности базового URL (опционально)
+            try {
+                console.log('🔍 Проверка доступности базового URL...');
+                const healthCheck = await axios.get(VTB_API_BASE_URL.replace('/api/v1', ''), { 
+                    timeout: 5000,
+                    validateStatus: () => true // Принимаем любой статус
+                });
+                console.log('✅ Базовый URL доступен, статус:', healthCheck.status);
+            } catch (healthError) {
+                console.warn('⚠️ Базовый URL недоступен или не отвечает:', healthError.message);
+                console.warn('💡 Проверьте правильность URL в документации ВТБ!');
+            }
             
             // Отправляем запрос на создание платежа
             console.log('📡 Отправка запроса в ВТБ API...');
@@ -204,7 +215,7 @@ router.post('/create-payment', [
                                    vtbResponse.data.url || 
                                    vtbResponse.data.confirmation?.url ||
                                    vtbResponse.data.redirect_url ||
-                                   `${VTB_API_URL}/payment/${vtbOrderId}`;
+                                   `${VTB_API_BASE_URL}/payment/${vtbOrderId}`;
             
             console.log('🔗 URL для редиректа:', confirmationUrl);
             console.log('🆔 ID платежа ВТБ:', vtbOrderId);
