@@ -151,7 +151,10 @@ router.post('/create-payment', [
             console.log('🔐 Заголовки авторизации:', {
                 hasAuth: !!headers.Authorization,
                 hasMerchantAuth: !!headers['Merchant-Authorization'],
-                authLength: headers.Authorization?.length
+                authLength: headers.Authorization?.length,
+                merchantAuthLength: headers['Merchant-Authorization']?.length,
+                clientIdPrefix: VTB_CLIENT_ID?.substring(0, 20) + '...', // Первые 20 символов для проверки
+                merchantAuthPrefix: VTB_MERCHANT_AUTH?.substring(0, 20) + '...' // Первые 20 символов для проверки
             });
 
             // Endpoint для создания платежа согласно документации ВТБ
