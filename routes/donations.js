@@ -9,6 +9,7 @@ const router = express.Router();
 // Конфигурация ВТБ API
 // Данные для тестового интернет-эквайринга ВТБ
 // Тестовый URL (Песочница): https://hackaton.bankingapi.ru/api/smb/efcp/e-commerce/api/v1/{наименование_эндпоинта}
+// ⚠️ ВАЖНО: Если в .env указан VTB_API_URL, он должен быть: https://hackaton.bankingapi.ru/api/smb/efcp/e-commerce/api/v1
 const VTB_API_BASE_URL = process.env.VTB_API_URL || 'https://hackaton.bankingapi.ru/api/smb/efcp/e-commerce/api/v1';
 const VTB_CLIENT_ID = process.env.VTB_CLIENT_ID; // client_id из письма
 const VTB_CLIENT_SECRET = process.env.VTB_CLIENT_SECRET; // client_secret из письма
@@ -232,38 +233,61 @@ router.post('/create-payment', [
             const isTimeout = vtbError.code === 'ECONNABORTED' || vtbError.message.includes('timeout');
             const isNetworkError = vtbError.code === 'ECONNREFUSED' || vtbError.code === 'ENOTFOUND';
             
+            // Детальное логирование ошибки
             console.error('❌ Ошибка создания платежа в ВТБ:', {
                 message: vtbError.message,
                 code: vtbError.code,
+                name: vtbError.name,
                 isTimeout: isTimeout,
                 isNetworkError: isNetworkError,
-                response: vtbError.response?.data,
-                status: vtbError.response?.status,
-                config: {
+                response: {
+                    status: vtbError.response?.status,
+                    statusText: vtbError.response?.statusText,
+                    data: vtbError.response?.data,
+                    headers: vtbError.response?.headers
+                },
+                request: {
                     url: vtbError.config?.url,
                     method: vtbError.config?.method,
-                    timeout: vtbError.config?.timeout
-                }
+                    timeout: vtbError.config?.timeout,
+                    headers: vtbError.config?.headers ? Object.keys(vtbError.config.headers) : undefined
+                },
+                stack: vtbError.stack
             });
 
             let errorMessage;
+            let statusCode = 500;
+            
             if (isTimeout) {
                 errorMessage = 'Таймаут при обращении к платежной системе. Попробуйте позже.';
             } else if (isNetworkError) {
                 errorMessage = 'Не удалось подключиться к платежной системе. Проверьте URL API.';
+            } else if (vtbError.response) {
+                // Есть ответ от сервера
+                statusCode = vtbError.response.status || 500;
+                const responseData = vtbError.response.data;
+                
+                // Пытаемся извлечь понятное сообщение об ошибке
+                errorMessage = responseData?.message || 
+                              responseData?.error?.message ||
+                              responseData?.error ||
+                              responseData?.description ||
+                              `Ошибка от ВТБ API: ${statusCode}`;
+                              
+                // Логируем полный ответ для отладки
+                console.error('📋 Полный ответ от ВТБ API:', JSON.stringify(responseData, null, 2));
             } else {
-                errorMessage = vtbError.response?.data?.message || 
-                              vtbError.response?.data?.error?.message ||
-                              vtbError.message ||
-                              'Ошибка создания платежа';
+                errorMessage = vtbError.message || 'Ошибка создания платежа';
             }
 
-            res.status(500).json({ 
+            res.status(statusCode).json({ 
                 error: 'Ошибка создания платежа',
                 message: errorMessage,
                 details: process.env.NODE_ENV !== 'production' ? {
                     code: vtbError.code,
-                    url: vtbError.config?.url
+                    status: statusCode,
+                    url: vtbError.config?.url,
+                    responseData: vtbError.response?.data
                 } : undefined
             });
         }
