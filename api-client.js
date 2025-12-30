@@ -474,6 +474,18 @@ class ApiClient {
             body: JSON.stringify({ text, image })
         });
     }
+
+    // Донаты
+    async createDonationPayment(donationData) {
+        return await this.request('/donations/create-payment', {
+            method: 'POST',
+            body: JSON.stringify(donationData)
+        });
+    }
+
+    async getDonationStatus(donationId) {
+        return await this.request(`/donations/status/${donationId}`);
+    }
 }
 
 // Создаем глобальный экземпляр

@@ -54,13 +54,16 @@ document.addEventListener('DOMContentLoaded', async function() {
             e.preventDefault();
             
             const formData = new FormData(donationForm);
-            const amount = formData.get('amount');
+            const amount = parseFloat(formData.get('amount'));
             const name = formData.get('name');
             const anonymous = formData.get('anonymous') === 'on';
             const acceptOffer = formData.get('acceptOffer') === 'on';
+            const email = formData.get('email');
+            const phone = formData.get('phone');
+            const message = formData.get('message');
             
-            if (!amount || amount < 100) {
-                NotificationSystem.warning('Минимальная сумма пожертвования - 100 рублей');
+            if (!amount || amount <= 0) {
+                NotificationSystem.warning('Пожалуйста, укажите сумму пожертвования');
                 return;
             }
             
@@ -69,27 +72,33 @@ document.addEventListener('DOMContentLoaded', async function() {
                 return;
             }
             
-            // Сохраняем пожертвование в базу данных
+            // Создаем платеж через ВТБ
             try {
-                const donation = {
+                NotificationSystem.info('Создание платежа...');
+                
+                const donationData = {
                     amount: amount,
-                    name: anonymous ? 'Анонимно' : name,
-                    email: formData.get('email'),
-                    message: formData.get('message'),
-                    date: new Date().toISOString()
+                    donorName: anonymous ? null : name,
+                    donorEmail: email || null,
+                    donorPhone: phone || null,
+                    message: message || null,
+                    anonymous: anonymous
                 };
                 
-                // Пожертвования пока сохраняются только локально
-                // TODO: Добавить endpoint для пожертвований
-                localStorage.setItem(`donation_${Date.now()}`, JSON.stringify(donation));
+                const response = await apiClient.createDonationPayment(donationData);
                 
-                donationForm.reset();
-                amountButtons.forEach(b => b.classList.remove('active'));
-                
-                NotificationSystem.success(`Спасибо за ваше пожертвование в размере ${amount} рублей! Ваша помощь очень важна для нас.`);
+                if (response.success && response.confirmationUrl) {
+                    // Сохраняем ID доната для проверки статуса
+                    localStorage.setItem('lastDonationId', response.donationId);
+                    
+                    // Перенаправляем на страницу оплаты ВТБ
+                    window.location.href = response.confirmationUrl;
+                } else {
+                    throw new Error('Не удалось создать платеж');
+                }
             } catch (error) {
-                console.error('Ошибка сохранения пожертвования:', error);
-                NotificationSystem.error('Произошла ошибка при сохранении пожертвования. Попробуйте еще раз.');
+                console.error('Ошибка создания платежа:', error);
+                NotificationSystem.error(error.message || 'Произошла ошибка при создании платежа. Попробуйте еще раз.');
             }
         });
     }

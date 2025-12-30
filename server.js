@@ -112,6 +112,7 @@ const adviceRoutes = require('./routes/advice');
 const adminRoutes = require('./routes/admin');
 const shopsRoutes = require('./routes/shops');
 const clinicsRoutes = require('./routes/clinics');
+const donationsRoutes = require('./routes/donations');
 
 // API Routes
 app.use('/api/auth', authRoutes);
@@ -127,6 +128,7 @@ app.use('/api/admin', adminRoutes.router);
 app.use('/api', adminRoutes.publicRouter); // Публичные роуты админки (настройки)
 app.use('/api/shops', shopsRoutes);
 app.use('/api/clinics', clinicsRoutes);
+app.use('/api/donations', donationsRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
