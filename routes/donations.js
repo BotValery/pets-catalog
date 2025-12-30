@@ -119,31 +119,29 @@ router.post('/create-payment', [
                 apiBaseUrl: VTB_API_BASE_URL
             });
             
-            // Структура запроса для создания платежа в ВТБ
-            // ⚠️ ВАЖНО: Адаптируйте под точный формат из PDF инструкции ВТБ!
+            // Структура запроса для создания ордера согласно документации ВТБ
+            // Раздел 4.12.1: POST v1/orders
+            // amount - сумма в копейках (integer)
+            // orderId - уникальный идентификатор заказа (string, до 100 символов)
+            // description - описание заказа (string, до 500 символов)
+            // returnUrl - URL для возврата после успешной оплаты
+            // failUrl - URL для возврата после неуспешной оплаты
             const paymentData = {
-                // Базовая структура (обновите под формат из PDF инструкции):
-                amount: Math.round(amount * 100), // сумма в копейках (или оставьте в рублях, если так требует API)
-                currency: 'RUB',
-                order_id: orderId,
+                amount: Math.round(amount * 100), // сумма в копейках
+                orderId: orderId, // уникальный идентификатор заказа
                 description: `Пожертвование в фонд "Друзья на лапки"`,
-                return_url: `${VTB_SUCCESS_URL}?orderId=${orderId}`,
-                fail_url: `${VTB_FAIL_URL}?orderId=${orderId}`,
-                // Дополнительные поля (добавьте, если требуются в документации):
-                customer: {
-                    name: anonymous ? 'Анонимно' : (donorName || 'Не указано'),
-                    email: donorEmail || null,
-                    phone: donorPhone || null
-                }
+                returnUrl: `${VTB_SUCCESS_URL}?orderId=${orderId}`,
+                failUrl: `${VTB_FAIL_URL}?orderId=${orderId}`
+                // customer - опциональное поле, можно добавить если нужно
             };
 
             console.log('📤 Данные для отправки в ВТБ:', JSON.stringify(paymentData, null, 2));
 
-            // Авторизация для ВТБ API
-            // Используем OAuth2 (client_id + client_secret) и Merchant-Authorization
+            // Авторизация для ВТБ API согласно документации
+            // Согласно разделу 4.4 "Безопасность использования API":
+            // Используется заголовок Merchant-Authorization для аутентификации
             const headers = {
                 'Content-Type': 'application/json',
-                'Authorization': `Basic ${Buffer.from(`${VTB_CLIENT_ID}:${VTB_CLIENT_SECRET}`).toString('base64')}`,
                 'Merchant-Authorization': VTB_MERCHANT_AUTH
             };
 
@@ -154,8 +152,9 @@ router.post('/create-payment', [
             });
 
             // Endpoint для создания платежа согласно документации ВТБ
-            // Формат URL: https://hackaton.bankingapi.ru/api/smb/efcp/e-commerce/api/v1/{наименование_эндпоинта}
-            const paymentEndpoint = '/orders'; // Endpoint из документации ВТБ
+            // Раздел 4.12.1: POST v1/orders
+            // Базовый URL уже содержит /api/v1, поэтому endpoint просто /orders
+            const paymentEndpoint = '/orders'; // POST v1/orders согласно документации
             const fullUrl = `${VTB_API_BASE_URL}${paymentEndpoint}`;
             
             console.log('🌐 URL для запроса:', fullUrl);
@@ -209,21 +208,28 @@ router.post('/create-payment', [
             // - vtbResponse.data.redirect_url
             // - Или формирование URL на основе payment_id
             
+            // Обработка ответа согласно документации ВТБ
+            // Раздел 4.12.1: POST v1/orders возвращает объект с полями:
+            // - orderId - идентификатор заказа
+            // - formUrl - URL для редиректа на страницу оплаты
+            // - orderStatus - статус заказа
             console.log('📦 Структура ответа от ВТБ:', JSON.stringify(vtbResponse.data, null, 2));
             
-            const vtbOrderId = vtbResponse.data.payment_id || vtbResponse.data.id || vtbResponse.data.order_id;
-            const confirmationUrl = vtbResponse.data.payment_url || 
-                                   vtbResponse.data.url || 
-                                   vtbResponse.data.confirmation?.url ||
-                                   vtbResponse.data.redirect_url ||
-                                   `${VTB_API_BASE_URL}/payment/${vtbOrderId}`;
+            // Извлекаем данные из ответа
+            const vtbOrderId = vtbResponse.data.orderId || orderId;
+            const confirmationUrl = vtbResponse.data.formUrl; // URL для редиректа на страницу оплаты
+            
+            if (!confirmationUrl) {
+                console.error('❌ ВТБ API не вернул formUrl в ответе:', vtbResponse.data);
+                throw new Error('ВТБ API не вернул formUrl для редиректа на страницу оплаты');
+            }
             
             console.log('🔗 URL для редиректа:', confirmationUrl);
-            console.log('🆔 ID платежа ВТБ:', vtbOrderId);
+            console.log('🆔 ID заказа ВТБ:', vtbOrderId);
 
             res.json({
                 success: true,
-                paymentId: vtbResponse.data.id || vtbOrderId,
+                paymentId: vtbOrderId,
                 confirmationUrl: confirmationUrl,
                 orderId: orderId
             });
