@@ -1193,8 +1193,28 @@ async function loadSettings() {
     try {
         const data = await apiClient.getEmergencyText();
         const textInput = document.getElementById('emergencyTextInput');
+        const imagePreview = document.getElementById('emergencyImagePreview');
+        const imagePreviewImg = document.getElementById('emergencyImagePreviewImg');
+        
         if (textInput) {
             textInput.value = data.text || '';
+        }
+        
+        // Обрабатываем картинку
+        if (data.image && data.image.trim() !== '') {
+            // Показываем превью, если есть картинка
+            if (imagePreview && imagePreviewImg) {
+                imagePreviewImg.src = data.image;
+                imagePreview.style.display = 'block';
+            }
+        } else {
+            // Скрываем превью, если картинки нет
+            if (imagePreview) {
+                imagePreview.style.display = 'none';
+            }
+            if (imagePreviewImg) {
+                imagePreviewImg.src = '';
+            }
         }
     } catch (error) {
         console.error('Ошибка загрузки настроек:', error);
@@ -1202,21 +1222,109 @@ async function loadSettings() {
     }
 }
 
-// Сохранение текста для страницы экстренных ситуаций
-window.saveEmergencyText = async function() {
+// Сохранение текста и картинки для страницы экстренных ситуаций
+window.saveEmergencySettings = async function() {
     const textInput = document.getElementById('emergencyTextInput');
+    const imageInput = document.getElementById('emergencyImageInput');
+    
     if (!textInput) {
         return;
     }
     
     const text = textInput.value.trim();
+    let image = '';
+    
+    // Обрабатываем загруженную картинку
+    if (imageInput && imageInput.files && imageInput.files[0]) {
+        const file = imageInput.files[0];
+        
+        // Проверяем размер файла (максимум 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            NotificationSystem.error('Размер картинки не должен превышать 5MB');
+            return;
+        }
+        
+        // Читаем файл как base64
+        try {
+            image = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        } catch (error) {
+            console.error('Ошибка чтения картинки:', error);
+            NotificationSystem.error('Ошибка чтения картинки');
+            return;
+        }
+    } else {
+        // Если картинка не загружена, проверяем, есть ли уже сохраненная
+        const imagePreviewImg = document.getElementById('emergencyImagePreviewImg');
+        if (imagePreviewImg && imagePreviewImg.src && imagePreviewImg.src.trim() !== '' && imagePreviewImg.src !== window.location.href) {
+            // Используем уже сохраненную картинку (base64 или URL)
+            image = imagePreviewImg.src;
+        }
+    }
     
     try {
-        await apiClient.saveEmergencyText(text);
-        NotificationSystem.success('Текст успешно сохранен');
+        await apiClient.saveEmergencyText(text, image);
+        NotificationSystem.success('Настройки успешно сохранены');
+        
+        // Обновляем превью картинки
+        const imagePreview = document.getElementById('emergencyImagePreview');
+        const imagePreviewImg = document.getElementById('emergencyImagePreviewImg');
+        
+        if (image && image.trim() !== '') {
+            // Показываем превью, если есть картинка
+            if (imagePreview && imagePreviewImg) {
+                imagePreviewImg.src = image;
+                imagePreview.style.display = 'block';
+            }
+        } else {
+            // Скрываем превью, если картинки нет
+            if (imagePreview) {
+                imagePreview.style.display = 'none';
+            }
+            if (imagePreviewImg) {
+                imagePreviewImg.src = '';
+            }
+        }
+        
+        // Очищаем поле загрузки
+        if (imageInput) {
+            imageInput.value = '';
+        }
     } catch (error) {
-        console.error('Ошибка сохранения текста:', error);
-        NotificationSystem.error(error.message || 'Ошибка сохранения текста');
+        console.error('Ошибка сохранения настроек:', error);
+        NotificationSystem.error(error.message || 'Ошибка сохранения настроек');
+    }
+}
+
+// Удаление картинки
+window.removeEmergencyImage = async function() {
+    try {
+        const textInput = document.getElementById('emergencyTextInput');
+        const text = textInput ? textInput.value.trim() : '';
+        
+        await apiClient.saveEmergencyText(text, '');
+        NotificationSystem.success('Картинка удалена');
+        
+        const imagePreview = document.getElementById('emergencyImagePreview');
+        const imagePreviewImg = document.getElementById('emergencyImagePreviewImg');
+        const imageInput = document.getElementById('emergencyImageInput');
+        
+        if (imagePreview) {
+            imagePreview.style.display = 'none';
+        }
+        if (imagePreviewImg) {
+            imagePreviewImg.src = '';
+        }
+        if (imageInput) {
+            imageInput.value = '';
+        }
+    } catch (error) {
+        console.error('Ошибка удаления картинки:', error);
+        NotificationSystem.error(error.message || 'Ошибка удаления картинки');
     }
 };
 

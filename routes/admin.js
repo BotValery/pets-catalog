@@ -136,7 +136,7 @@ router.get('/users-and-shelters', async (req, res) => {
     }
 });
 
-// Получить текст для страницы экстренных ситуаций
+// Получить текст и картинку для страницы экстренных ситуаций
 router.get('/settings/emergency-text', async (req, res) => {
     try {
         // Проверяем, существует ли таблица settings
@@ -150,20 +150,23 @@ router.get('/settings/emergency-text', async (req, res) => {
             )`);
         }
         
-        const setting = await db.get('SELECT value FROM settings WHERE key = ?', ['emergency_text']);
-        const text = setting ? setting.value : '';
+        const textSetting = await db.get('SELECT value FROM settings WHERE key = ?', ['emergency_text']);
+        const imageSetting = await db.get('SELECT value FROM settings WHERE key = ?', ['emergency_image']);
         
-        res.json({ text });
+        const text = textSetting ? textSetting.value : '';
+        const image = imageSetting ? imageSetting.value : '';
+        
+        res.json({ text, image });
     } catch (error) {
-        console.error('Ошибка получения текста:', error);
+        console.error('Ошибка получения настроек:', error);
         res.status(500).json({ error: 'Ошибка сервера' });
     }
 });
 
-// Сохранить текст для страницы экстренных ситуаций
+// Сохранить текст и картинку для страницы экстренных ситуаций
 router.post('/settings/emergency-text', async (req, res) => {
     try {
-        const { text } = req.body;
+        const { text, image } = req.body;
         
         // Проверяем, существует ли таблица settings
         const tableInfo = await db.all("SELECT name FROM sqlite_master WHERE type='table' AND name='settings'");
@@ -176,35 +179,45 @@ router.post('/settings/emergency-text', async (req, res) => {
             )`);
         }
         
-        // Сохраняем или обновляем настройку
+        // Сохраняем или обновляем настройки
         await db.run(
             'INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)',
             ['emergency_text', text || '']
         );
         
-        res.json({ success: true, message: 'Текст успешно сохранен' });
+        if (image !== undefined) {
+            await db.run(
+                'INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)',
+                ['emergency_image', image || '']
+            );
+        }
+        
+        res.json({ success: true, message: 'Настройки успешно сохранены' });
     } catch (error) {
-        console.error('Ошибка сохранения текста:', error);
+        console.error('Ошибка сохранения настроек:', error);
         res.status(500).json({ error: 'Ошибка сервера' });
     }
 });
 
-// Публичный endpoint для получения текста (без авторизации)
+// Публичный endpoint для получения текста и картинки (без авторизации)
 publicRouter.get('/settings/emergency-text', async (req, res) => {
     try {
         const tableInfo = await db.all("SELECT name FROM sqlite_master WHERE type='table' AND name='settings'");
         
         if (tableInfo.length === 0) {
-            return res.json({ text: '' });
+            return res.json({ text: '', image: '' });
         }
         
-        const setting = await db.get('SELECT value FROM settings WHERE key = ?', ['emergency_text']);
-        const text = setting ? setting.value : '';
+        const textSetting = await db.get('SELECT value FROM settings WHERE key = ?', ['emergency_text']);
+        const imageSetting = await db.get('SELECT value FROM settings WHERE key = ?', ['emergency_image']);
         
-        res.json({ text });
+        const text = textSetting ? textSetting.value : '';
+        const image = imageSetting ? imageSetting.value : '';
+        
+        res.json({ text, image });
     } catch (error) {
-        console.error('Ошибка получения текста:', error);
-        res.json({ text: '' });
+        console.error('Ошибка получения настроек:', error);
+        res.json({ text: '', image: '' });
     }
 });
 

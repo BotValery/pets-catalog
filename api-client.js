@@ -468,10 +468,10 @@ class ApiClient {
         return await this.request('/settings/emergency-text');
     }
 
-    async saveEmergencyText(text) {
+    async saveEmergencyText(text, image = undefined) {
         return await this.request('/admin/settings/emergency-text', {
             method: 'POST',
-            body: JSON.stringify({ text })
+            body: JSON.stringify({ text, image })
         });
     }
 }

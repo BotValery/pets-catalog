@@ -6,29 +6,61 @@ window.toggleForm = function(headerElement) {
     }
 };
 
-// Загрузка текста для страницы экстренных ситуаций
+// Загрузка текста и картинки для страницы экстренных ситуаций
 async function loadEmergencyText() {
     try {
         const data = await apiClient.getEmergencyText();
         const text = data.text || '';
+        const image = data.image || '';
+        
         const textElement = document.getElementById('emergencyText');
         const textSection = document.getElementById('emergencyTextSection');
+        const imageElement = document.getElementById('emergencyImage');
+        const imageContainer = document.getElementById('emergencyImageContainer');
+        const textContainer = document.getElementById('emergencyTextContainer');
         
-        if (textElement && textSection) {
-            if (text.trim()) {
-                // Если есть текст, показываем поле и устанавливаем текст
-                textElement.textContent = text;
+        if (textSection) {
+            const hasText = text.trim().length > 0;
+            const hasImage = image.trim().length > 0;
+            
+            if (hasText || hasImage) {
+                // Показываем секцию, если есть текст или картинка
                 textSection.style.display = 'block';
+                
+                // Устанавливаем текст
+                if (textElement) {
+                    if (hasText) {
+                        textElement.textContent = text;
+                        if (textContainer) {
+                            textContainer.style.display = 'block';
+                        }
+                    } else {
+                        if (textContainer) {
+                            textContainer.style.display = 'none';
+                        }
+                    }
+                }
+                
+                // Устанавливаем картинку
+                if (imageElement && imageContainer) {
+                    if (hasImage) {
+                        imageElement.src = image;
+                        imageElement.alt = 'Изображение';
+                        imageContainer.style.display = 'block';
+                    } else {
+                        imageContainer.style.display = 'none';
+                    }
+                }
             } else {
-                // Если текста нет, скрываем поле
+                // Если нет ни текста, ни картинки, скрываем секцию
                 textSection.style.display = 'none';
             }
         }
     } catch (error) {
-        console.error('Ошибка загрузки текста:', error);
+        console.error('Ошибка загрузки текста и картинки:', error);
         const textSection = document.getElementById('emergencyTextSection');
         if (textSection) {
-            // При ошибке тоже скрываем поле
+            // При ошибке скрываем поле
             textSection.style.display = 'none';
         }
     }

@@ -407,12 +407,27 @@
                         <h3 style="margin: 0 0 2rem 0;">Настройки сайта</h3>
                         
                         <div style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 2rem;">
-                            <h4 style="margin: 0 0 1rem 0;">Текст на странице "Экстренные ситуации"</h4>
+                            <h4 style="margin: 0 0 1rem 0;">Текст и картинка на странице "Экстренные ситуации"</h4>
                             <p style="color: #666; margin-bottom: 1rem; font-size: 0.9rem;">
-                                Этот текст отображается на странице экстренных ситуаций между счетчиком "найдено животных" и формами.
+                                Текст и картинка отображаются на странице экстренных ситуаций между счетчиком "найдено животных" и формами. Картинка будет слева, текст справа.
                             </p>
-                            <textarea id="emergencyTextInput" rows="6" placeholder="Введите текст, который будет отображаться на странице экстренных ситуаций..." style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem; font-family: inherit; resize: vertical; margin-bottom: 1rem;"></textarea>
-                            <button class="submit-btn" onclick="saveEmergencyText()" style="margin: 0;">💾 Сохранить текст</button>
+                            
+                            <div style="margin-bottom: 1rem;">
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Картинка (необязательно)</label>
+                                <input type="file" id="emergencyImageInput" accept="image/*" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 0.5rem;">
+                                <div id="emergencyImagePreview" style="margin-top: 1rem; display: none;">
+                                    <p style="margin-bottom: 0.5rem; font-size: 0.9rem; color: #666;">Текущая картинка:</p>
+                                    <img id="emergencyImagePreviewImg" src="" alt="Предпросмотр" style="max-width: 300px; max-height: 200px; border-radius: 8px; border: 1px solid #ddd;">
+                                    <button type="button" onclick="removeEmergencyImage()" style="display: block; margin-top: 0.5rem; padding: 0.5rem 1rem; background: #e53e3e; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem;">🗑️ Удалить картинку</button>
+                                </div>
+                            </div>
+                            
+                            <div style="margin-bottom: 1rem;">
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Текст</label>
+                                <textarea id="emergencyTextInput" rows="6" placeholder="Введите текст, который будет отображаться на странице экстренных ситуаций..." style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem; font-family: inherit; resize: vertical;"></textarea>
+                            </div>
+                            
+                            <button class="submit-btn" onclick="saveEmergencySettings()" style="margin: 0;">💾 Сохранить настройки</button>
                         </div>
                     </div>
                 </div>
