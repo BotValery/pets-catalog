@@ -100,8 +100,11 @@ async function loadAdminData() {
         const allPetsData = await apiClient.getPets({ all: 'true' });
         const allPets = allPetsData.pets || [];
         
-        // Фильтруем забранных питомцев (adopted может быть true, 1 или '1')
-        const adoptedPets = allPets.filter(pet => pet.adopted === true || pet.adopted === 1 || pet.adopted === '1');
+        // Фильтруем забранных питомцев (adopted может быть true, 1, '1' или любое truthy значение)
+        const adoptedPets = allPets.filter(pet => {
+            const adopted = pet.adopted;
+            return adopted === true || adopted === 1 || adopted === '1' || (typeof adopted === 'number' && adopted !== 0);
+        });
         
         // Получаем волонтеров и заявки
         const volunteersData = await apiClient.getVolunteers();
@@ -183,8 +186,24 @@ function displayAdoptedPets(adoptedPets) {
         
         // Определяем изображение
         let imageHtml = `<div class="adopted-pet-image">${pet.icon || (pet.type === 'dog' ? '🐕' : '🐱')}</div>`;
-        if (pet.photos && pet.photos.length > 0) {
-            imageHtml = `<img src="${pet.photos[0]}" alt="${pet.name}" class="adopted-pet-image">`;
+        
+        // Обрабатываем фотографии (могут быть массивом или строкой JSON)
+        let photos = [];
+        if (pet.photos) {
+            if (Array.isArray(pet.photos)) {
+                photos = pet.photos;
+            } else if (typeof pet.photos === 'string') {
+                try {
+                    photos = JSON.parse(pet.photos);
+                } catch (e) {
+                    console.warn('Ошибка парсинга фотографий для питомца', pet.id, e);
+                    photos = [];
+                }
+            }
+        }
+        
+        if (photos.length > 0) {
+            imageHtml = `<img src="${photos[0]}" alt="${pet.name}" class="adopted-pet-image">`;
         }
         
         // Форматируем дату

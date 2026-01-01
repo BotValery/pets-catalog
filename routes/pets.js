@@ -87,17 +87,21 @@ router.get('/', [
     query('type').optional().isIn(['dog', 'cat', 'all']),
     query('ageCategory').optional().isIn(['young', 'adult', 'senior', 'all']),
     query('gender').optional().isIn(['male', 'female', 'all']),
-    query('size').optional().isIn(['small', 'medium', 'large', 'all'])
+    query('size').optional().isIn(['small', 'medium', 'large', 'all']),
+    query('all').optional()
 ], async (req, res) => {
     try {
         await ensurePetsTable();
         
-        let sql = 'SELECT * FROM pets WHERE adopted = 0';
+        // Если параметр all=true, возвращаем всех питомцев (включая забранных)
+        // Иначе возвращаем только непристроенных
+        const includeAdopted = req.query.all === 'true';
+        let sql = includeAdopted ? 'SELECT * FROM pets' : 'SELECT * FROM pets WHERE adopted = 0';
         const params = [];
 
         // Фильтры
         if (req.query.type && req.query.type !== 'all') {
-            sql += ' AND type = ?';
+            sql += includeAdopted ? ' WHERE type = ?' : ' AND type = ?';
             params.push(req.query.type);
         }
         if (req.query.ageCategory && req.query.ageCategory !== 'all') {
@@ -118,10 +122,21 @@ router.get('/', [
         const pets = await db.all(sql, params);
         
         // Парсим photos из JSON строки
-        const petsWithParsedPhotos = pets.map(pet => ({
-            ...pet,
-            photos: pet.photos ? JSON.parse(pet.photos) : []
-        }));
+        const petsWithParsedPhotos = pets.map(pet => {
+            let photos = [];
+            if (pet.photos) {
+                try {
+                    photos = JSON.parse(pet.photos);
+                } catch (parseError) {
+                    console.warn('Ошибка парсинга photos для питомца', pet.id, parseError);
+                    photos = [];
+                }
+            }
+            return {
+                ...pet,
+                photos: photos
+            };
+        });
 
         res.json({ pets: petsWithParsedPhotos });
     } catch (error) {
