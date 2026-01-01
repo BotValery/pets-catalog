@@ -41,12 +41,39 @@ async function loadEmergencyText() {
                     }
                 }
                 
-                // Устанавливаем картинку
-                if (imageElement && imageContainer) {
-                    if (hasImage) {
-                        imageElement.src = image;
-                        imageElement.alt = 'Изображение';
-                        imageContainer.style.display = 'block';
+                // Устанавливаем картинки (может быть одна строка или массив)
+                if (imageContainer) {
+                    let images = [];
+                    if (image) {
+                        if (typeof image === 'string' && image.trim() !== '') {
+                            try {
+                                // Пытаемся распарсить как JSON (массив)
+                                images = JSON.parse(image);
+                                if (!Array.isArray(images)) {
+                                    // Если не массив, значит это старая версия с одной картинкой
+                                    images = [image];
+                                }
+                            } catch (e) {
+                                // Если не JSON, значит это одна картинка (старая версия)
+                                images = [image];
+                            }
+                        } else if (Array.isArray(image)) {
+                            images = image;
+                        }
+                    }
+                    
+                    if (images.length > 0) {
+                        imageContainer.innerHTML = '';
+                        images.forEach((img, index) => {
+                            const imgElement = document.createElement('img');
+                            imgElement.src = img;
+                            imgElement.alt = `Изображение ${index + 1}`;
+                            imgElement.style.cssText = 'max-width: 300px; max-height: 300px; border-radius: 8px; object-fit: cover; box-shadow: 0 4px 8px rgba(0,0,0,0.2); margin-right: 1rem;';
+                            imageContainer.appendChild(imgElement);
+                        });
+                        imageContainer.style.display = 'flex';
+                        imageContainer.style.flexWrap = 'wrap';
+                        imageContainer.style.gap = '1rem';
                     } else {
                         imageContainer.style.display = 'none';
                     }

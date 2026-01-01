@@ -1207,32 +1207,76 @@ window.deleteClinic = function(clinicId) {
     );
 };
 
+// Обработчик ограничения выбора файлов (максимум 2)
+document.addEventListener('DOMContentLoaded', function() {
+    const imageInput = document.getElementById('emergencyImageInput');
+    if (imageInput) {
+        imageInput.addEventListener('change', function(e) {
+            if (this.files.length > 2) {
+                NotificationSystem.warning('Можно выбрать только 2 картинки. Будут загружены первые 2.');
+                // Оставляем только первые 2 файла
+                const dt = new DataTransfer();
+                for (let i = 0; i < Math.min(2, this.files.length); i++) {
+                    dt.items.add(this.files[i]);
+                }
+                this.files = dt.files;
+            }
+        });
+    }
+});
+
 // Загрузка настроек
 async function loadSettings() {
     try {
         const data = await apiClient.getEmergencyText();
         const textInput = document.getElementById('emergencyTextInput');
         const imagePreview = document.getElementById('emergencyImagePreview');
-        const imagePreviewImg = document.getElementById('emergencyImagePreviewImg');
+        const imagePreviewContainer = document.getElementById('emergencyImagePreviewContainer');
         
         if (textInput) {
             textInput.value = data.text || '';
         }
         
-        // Обрабатываем картинку
-        if (data.image && data.image.trim() !== '') {
-            // Показываем превью, если есть картинка
-            if (imagePreview && imagePreviewImg) {
-                imagePreviewImg.src = data.image;
+        // Обрабатываем картинки (может быть одна строка или массив)
+        let images = [];
+        if (data.image) {
+            if (typeof data.image === 'string' && data.image.trim() !== '') {
+                try {
+                    // Пытаемся распарсить как JSON (массив)
+                    images = JSON.parse(data.image);
+                    if (!Array.isArray(images)) {
+                        // Если не массив, значит это старая версия с одной картинкой
+                        images = [data.image];
+                    }
+                } catch (e) {
+                    // Если не JSON, значит это одна картинка (старая версия)
+                    images = [data.image];
+                }
+            } else if (Array.isArray(data.image)) {
+                images = data.image;
+            }
+        }
+        
+        if (images.length > 0) {
+            // Показываем превью, если есть картинки
+            if (imagePreview && imagePreviewContainer) {
+                imagePreviewContainer.innerHTML = '';
+                images.forEach((img, index) => {
+                    const imgElement = document.createElement('img');
+                    imgElement.src = img;
+                    imgElement.alt = `Предпросмотр ${index + 1}`;
+                    imgElement.style.cssText = 'max-width: 300px; max-height: 200px; border-radius: 8px; border: 1px solid #ddd; object-fit: cover;';
+                    imagePreviewContainer.appendChild(imgElement);
+                });
                 imagePreview.style.display = 'block';
             }
         } else {
-            // Скрываем превью, если картинки нет
+            // Скрываем превью, если картинок нет
             if (imagePreview) {
                 imagePreview.style.display = 'none';
             }
-            if (imagePreviewImg) {
-                imagePreviewImg.src = '';
+            if (imagePreviewContainer) {
+                imagePreviewContainer.innerHTML = '';
             }
         }
     } catch (error) {
@@ -1251,61 +1295,82 @@ window.saveEmergencySettings = async function() {
     }
     
     const text = textInput.value.trim();
-    let image = '';
+    let images = [];
     
-    // Обрабатываем загруженную картинку
-    if (imageInput && imageInput.files && imageInput.files[0]) {
-        const file = imageInput.files[0];
+    // Обрабатываем загруженные картинки (до 2-х)
+    if (imageInput && imageInput.files && imageInput.files.length > 0) {
+        const files = Array.from(imageInput.files).slice(0, 2); // Ограничиваем до 2-х файлов
         
-        // Проверяем размер файла (максимум 5MB)
-        if (file.size > 5 * 1024 * 1024) {
-            NotificationSystem.error('Размер картинки не должен превышать 5MB');
-            return;
+        if (imageInput.files.length > 2) {
+            NotificationSystem.warning('Можно загрузить только 2 картинки. Будут загружены первые 2.');
         }
         
-        // Читаем файл как base64
+        // Проверяем размер каждого файла (максимум 5MB)
+        for (const file of files) {
+            if (file.size > 5 * 1024 * 1024) {
+                NotificationSystem.error(`Размер картинки "${file.name}" не должен превышать 5MB`);
+                return;
+            }
+        }
+        
+        // Читаем файлы как base64
         try {
-            image = await new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = (e) => resolve(e.target.result);
-                reader.onerror = reject;
-                reader.readAsDataURL(file);
-            });
+            for (const file of files) {
+                const imageData = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+                images.push(imageData);
+            }
         } catch (error) {
             console.error('Ошибка чтения картинки:', error);
             NotificationSystem.error('Ошибка чтения картинки');
             return;
         }
     } else {
-        // Если картинка не загружена, проверяем, есть ли уже сохраненная
-        const imagePreviewImg = document.getElementById('emergencyImagePreviewImg');
-        if (imagePreviewImg && imagePreviewImg.src && imagePreviewImg.src.trim() !== '' && imagePreviewImg.src !== window.location.href) {
-            // Используем уже сохраненную картинку (base64 или URL)
-            image = imagePreviewImg.src;
+        // Если картинки не загружены, проверяем, есть ли уже сохраненные
+        const imagePreviewContainer = document.getElementById('emergencyImagePreviewContainer');
+        if (imagePreviewContainer) {
+            const existingImages = Array.from(imagePreviewContainer.querySelectorAll('img'))
+                .map(img => img.src)
+                .filter(src => src && src.trim() !== '' && src !== window.location.href);
+            images = existingImages;
         }
     }
     
+    // Сохраняем как JSON строку (массив)
+    const imageValue = images.length > 0 ? JSON.stringify(images) : '';
+    
     try {
-        await apiClient.saveEmergencyText(text, image);
+        await apiClient.saveEmergencyText(text, imageValue);
         NotificationSystem.success('Настройки успешно сохранены');
         
-        // Обновляем превью картинки
+        // Обновляем превью картинок
         const imagePreview = document.getElementById('emergencyImagePreview');
-        const imagePreviewImg = document.getElementById('emergencyImagePreviewImg');
+        const imagePreviewContainer = document.getElementById('emergencyImagePreviewContainer');
         
-        if (image && image.trim() !== '') {
-            // Показываем превью, если есть картинка
-            if (imagePreview && imagePreviewImg) {
-                imagePreviewImg.src = image;
+        if (images.length > 0) {
+            // Показываем превью, если есть картинки
+            if (imagePreview && imagePreviewContainer) {
+                imagePreviewContainer.innerHTML = '';
+                images.forEach((img, index) => {
+                    const imgElement = document.createElement('img');
+                    imgElement.src = img;
+                    imgElement.alt = `Предпросмотр ${index + 1}`;
+                    imgElement.style.cssText = 'max-width: 300px; max-height: 200px; border-radius: 8px; border: 1px solid #ddd; object-fit: cover;';
+                    imagePreviewContainer.appendChild(imgElement);
+                });
                 imagePreview.style.display = 'block';
             }
         } else {
-            // Скрываем превью, если картинки нет
+            // Скрываем превью, если картинок нет
             if (imagePreview) {
                 imagePreview.style.display = 'none';
             }
-            if (imagePreviewImg) {
-                imagePreviewImg.src = '';
+            if (imagePreviewContainer) {
+                imagePreviewContainer.innerHTML = '';
             }
         }
         
@@ -1319,31 +1384,31 @@ window.saveEmergencySettings = async function() {
     }
 }
 
-// Удаление картинки
+// Удаление всех картинок
 window.removeEmergencyImage = async function() {
     try {
         const textInput = document.getElementById('emergencyTextInput');
         const text = textInput ? textInput.value.trim() : '';
         
         await apiClient.saveEmergencyText(text, '');
-        NotificationSystem.success('Картинка удалена');
+        NotificationSystem.success('Все картинки удалены');
         
         const imagePreview = document.getElementById('emergencyImagePreview');
-        const imagePreviewImg = document.getElementById('emergencyImagePreviewImg');
+        const imagePreviewContainer = document.getElementById('emergencyImagePreviewContainer');
         const imageInput = document.getElementById('emergencyImageInput');
         
         if (imagePreview) {
             imagePreview.style.display = 'none';
         }
-        if (imagePreviewImg) {
-            imagePreviewImg.src = '';
+        if (imagePreviewContainer) {
+            imagePreviewContainer.innerHTML = '';
         }
         if (imageInput) {
             imageInput.value = '';
         }
     } catch (error) {
-        console.error('Ошибка удаления картинки:', error);
-        NotificationSystem.error(error.message || 'Ошибка удаления картинки');
+        console.error('Ошибка удаления картинок:', error);
+        NotificationSystem.error(error.message || 'Ошибка удаления картинок');
     }
 };
 
