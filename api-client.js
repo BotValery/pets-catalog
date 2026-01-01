@@ -176,6 +176,10 @@ class ApiClient {
         return await this.request('/pets/shelter/adopted');
     }
 
+    async getAdoptedCount() {
+        return await this.request('/pets/adopted-count');
+    }
+
     async addPet(petData) {
         return await this.request('/pets', {
             method: 'POST',

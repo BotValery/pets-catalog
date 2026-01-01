@@ -77,10 +77,10 @@ const ApplicationsSystem = {
     // Получить количество пристроенных животных
     async getAdoptedCount() {
         try {
-            const data = await apiClient.getApplications();
-            return (data.applications || []).filter(app => app.status === 'забрали').length;
+            const data = await apiClient.getAdoptedCount();
+            return data.count || 0;
         } catch (error) {
-            console.error('Ошибка получения количества:', error);
+            console.error('Ошибка получения количества пристроенных животных:', error);
             return 0;
         }
     }

@@ -130,6 +130,18 @@ router.get('/', [
     }
 });
 
+// Получить количество пристроенных животных (публичный endpoint)
+router.get('/adopted-count', async (req, res) => {
+    try {
+        await ensurePetsTable();
+        const result = await db.get('SELECT COUNT(*) as count FROM pets WHERE adopted = 1');
+        res.json({ count: result ? result.count : 0 });
+    } catch (error) {
+        console.error('Ошибка получения количества пристроенных животных:', error);
+        res.status(500).json({ error: 'Ошибка сервера', count: 0 });
+    }
+});
+
 // ВАЖНО: Специфичные роуты должны быть ПЕРЕД параметрическим роутом /:id
 // Получить питомцев передержки (размещенные, не отданные)
 router.get('/shelter/my-pets', authenticateToken, requireShelter, async (req, res) => {
