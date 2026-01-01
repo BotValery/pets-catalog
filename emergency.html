@@ -117,6 +117,12 @@
                                 <input type="text" id="lostLocation" name="location" required placeholder="Улица, район, г. Чита">
                             </div>
 
+                            <div class="form-group">
+                                <label for="lostPhotos">Фотографии (можно несколько)</label>
+                                <input type="file" id="lostPhotos" name="photos" multiple accept="image/*">
+                                <div id="lostPhotoPreview" class="photo-preview"></div>
+                            </div>
+
                             <div class="form-row">
                                 <div class="form-group">
                                     <label for="lostDate">Дата пропажи *</label>
@@ -188,6 +194,12 @@
                             <div class="form-group">
                                 <label for="foundLocation">Где найдено? *</label>
                                 <input type="text" id="foundLocation" name="location" required placeholder="Улица, район, г. Чита">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="foundPhotos">Фотографии (можно несколько)</label>
+                                <input type="file" id="foundPhotos" name="photos" multiple accept="image/*">
+                                <div id="foundPhotoPreview" class="photo-preview"></div>
                             </div>
 
                             <div class="form-row">

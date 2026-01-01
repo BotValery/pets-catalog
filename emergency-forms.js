@@ -81,6 +81,10 @@ document.addEventListener('DOMContentLoaded', async function() {
     const lostAnnouncements = document.getElementById('lostAnnouncements');
     const foundAnnouncements = document.getElementById('foundAnnouncements');
     const tabButtons = document.querySelectorAll('.tab-btn');
+    const lostPhotos = document.getElementById('lostPhotos');
+    const foundPhotos = document.getElementById('foundPhotos');
+    const lostPhotoPreview = document.getElementById('lostPhotoPreview');
+    const foundPhotoPreview = document.getElementById('foundPhotoPreview');
 
     // Устанавливаем сегодняшнюю дату по умолчанию (только если формы видны)
     const today = new Date().toISOString().split('T')[0];
@@ -106,6 +110,117 @@ document.addEventListener('DOMContentLoaded', async function() {
         await renderAnnouncements();
     }
 
+    // Функция обработки фотографий с оптимизацией
+    async function processPhotos(files) {
+        const photos = [];
+        if (files.length === 0) {
+            return photos;
+        }
+
+        NotificationSystem.info('Обработка фотографий...');
+        
+        const MAX_WIDTH = 1920;
+        const MAX_HEIGHT = 1920;
+        const QUALITY = 0.85;
+
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            try {
+                const photoPromise = new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            try {
+                                let width = img.width;
+                                let height = img.height;
+                                
+                                if (width > MAX_WIDTH || height > MAX_HEIGHT) {
+                                    if (width > height) {
+                                        height = (height * MAX_WIDTH) / width;
+                                        width = MAX_WIDTH;
+                                    } else {
+                                        width = (width * MAX_HEIGHT) / height;
+                                        height = MAX_HEIGHT;
+                                    }
+                                }
+                                
+                                const canvas = document.createElement('canvas');
+                                canvas.width = width;
+                                canvas.height = height;
+                                const ctx = canvas.getContext('2d');
+                                ctx.drawImage(img, 0, 0, width, height);
+                                
+                                const compressedDataUrl = canvas.toDataURL('image/jpeg', QUALITY);
+                                resolve(compressedDataUrl);
+                            } catch (canvasError) {
+                                resolve(e.target.result);
+                            }
+                        };
+                        img.onerror = () => {
+                            resolve(e.target.result);
+                        };
+                        img.src = e.target.result;
+                    };
+                    reader.onerror = () => reject(new Error('Ошибка чтения файла'));
+                    reader.readAsDataURL(file);
+                });
+                photos.push(await photoPromise);
+            } catch (error) {
+                console.error('Ошибка обработки фотографии:', error);
+                NotificationSystem.warning(`Не удалось обработать фотографию "${file.name}". Попробуйте выбрать другое изображение.`);
+            }
+        }
+        
+        return photos;
+    }
+
+    // Обработчик предпросмотра фотографий для формы "Потерялся"
+    if (lostPhotos && lostPhotoPreview) {
+        lostPhotos.addEventListener('change', function(e) {
+            lostPhotoPreview.innerHTML = '';
+            const files = e.target.files;
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.style.width = '100px';
+                    img.style.height = '100px';
+                    img.style.objectFit = 'cover';
+                    img.style.borderRadius = '8px';
+                    img.style.margin = '5px';
+                    lostPhotoPreview.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+
+    // Обработчик предпросмотра фотографий для формы "Найден"
+    if (foundPhotos && foundPhotoPreview) {
+        foundPhotos.addEventListener('change', function(e) {
+            foundPhotoPreview.innerHTML = '';
+            const files = e.target.files;
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.style.width = '100px';
+                    img.style.height = '100px';
+                    img.style.objectFit = 'cover';
+                    img.style.borderRadius = '8px';
+                    img.style.margin = '5px';
+                    foundPhotoPreview.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+
     // Обработчик формы "Мой питомец потерялся"
     if (lostPetForm) {
         lostPetForm.addEventListener('submit', async function(e) {
@@ -122,6 +237,17 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
             
             const formData = new FormData(lostPetForm);
+            
+            // Обрабатываем фотографии
+            const files = lostPhotos ? lostPhotos.files : [];
+            const existingPhotos = JSON.parse(lostPetForm.dataset.existingPhotos || '[]');
+            let photos = [...existingPhotos];
+            
+            if (files.length > 0) {
+                const newPhotos = await processPhotos(Array.from(files));
+                photos = [...photos, ...newPhotos];
+            }
+            
             const announcement = {
                 name: formData.get('name'),
                 petType: formData.get('type'),
@@ -133,6 +259,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 location: formData.get('location'),
                 date: formData.get('date'),
                 contact: formData.get('contact'),
+                photos: photos,
                 userId: currentUser.id
             };
 
@@ -142,6 +269,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     // Редактирование
                     await AnnouncementsSystem.updateAnnouncement(editId, announcement);
                     delete lostPetForm.dataset.editId;
+                    delete lostPetForm.dataset.existingPhotos;
                     NotificationSystem.success('Объявление успешно обновлено!');
                 } else {
                     // Создание
@@ -150,6 +278,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                 }
                 await renderAnnouncements();
                 lostPetForm.reset();
+                lostPhotoPreview.innerHTML = '';
+                delete lostPetForm.dataset.editId;
+                delete lostPetForm.dataset.existingPhotos;
                 document.getElementById('lostDate').value = today;
             } catch (error) {
                 console.error('Ошибка сохранения:', error);
@@ -174,6 +305,17 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
             
             const formData = new FormData(foundPetForm);
+            
+            // Обрабатываем фотографии
+            const files = foundPhotos ? foundPhotos.files : [];
+            const existingPhotos = JSON.parse(foundPetForm.dataset.existingPhotos || '[]');
+            let photos = [...existingPhotos];
+            
+            if (files.length > 0) {
+                const newPhotos = await processPhotos(Array.from(files));
+                photos = [...photos, ...newPhotos];
+            }
+            
             const announcement = {
                 petType: formData.get('type'),
                 breed: formData.get('breed') || 'Неизвестно',
@@ -184,6 +326,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 location: formData.get('location'),
                 date: formData.get('date'),
                 contact: formData.get('contact'),
+                photos: photos,
                 userId: currentUser.id
             };
 
@@ -193,6 +336,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     // Редактирование
                     await AnnouncementsSystem.updateAnnouncement(editId, announcement);
                     delete foundPetForm.dataset.editId;
+                    delete foundPetForm.dataset.existingPhotos;
                     NotificationSystem.success('Объявление успешно обновлено!');
                 } else {
                     // Создание
@@ -203,6 +347,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                 
                 await renderAnnouncements();
                 foundPetForm.reset();
+                foundPhotoPreview.innerHTML = '';
+                delete foundPetForm.dataset.editId;
+                delete foundPetForm.dataset.existingPhotos;
                 document.getElementById('foundDate').value = today;
             } catch (error) {
                 console.error('Ошибка сохранения:', error);
@@ -284,8 +431,30 @@ document.addEventListener('DOMContentLoaded', async function() {
             lostAnnouncements.innerHTML = lostPets.map(pet => {
                 const ownerCheck = isOwner(pet);
                 const petType = pet.type_animal || pet.petType;
+                let photos = [];
+                if (pet.photos) {
+                    if (Array.isArray(pet.photos)) {
+                        photos = pet.photos;
+                    } else if (typeof pet.photos === 'string') {
+                        try {
+                            photos = JSON.parse(pet.photos);
+                        } catch (e) {
+                            console.warn('Ошибка парсинга фотографий:', e);
+                            photos = [];
+                        }
+                    }
+                }
+                const hasPhotos = photos.length > 0;
+                
+                // Определяем изображение
+                let imageHtml = `<div class="pet-image">${petType === 'dog' ? '🐕' : '🐱'}</div>`;
+                if (hasPhotos) {
+                    imageHtml = `<div class="pet-image" style="background-image: url('${photos[0]}'); background-size: cover; background-position: center;"></div>`;
+                }
+                
                 return `
                 <div class="pet-card" style="cursor: default;">
+                    ${imageHtml}
                     <div class="pet-info">
                         <div class="pet-name" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
                             <span>${pet.name}</span>
@@ -385,8 +554,30 @@ document.addEventListener('DOMContentLoaded', async function() {
             foundAnnouncements.innerHTML = foundPets.map(pet => {
                 const ownerCheck = isOwner(pet);
                 const petType = pet.type_animal || pet.petType;
+                let photos = [];
+                if (pet.photos) {
+                    if (Array.isArray(pet.photos)) {
+                        photos = pet.photos;
+                    } else if (typeof pet.photos === 'string') {
+                        try {
+                            photos = JSON.parse(pet.photos);
+                        } catch (e) {
+                            console.warn('Ошибка парсинга фотографий:', e);
+                            photos = [];
+                        }
+                    }
+                }
+                const hasPhotos = photos.length > 0;
+                
+                // Определяем изображение
+                let imageHtml = `<div class="pet-image">${petType === 'dog' ? '🐕' : '🐱'}</div>`;
+                if (hasPhotos) {
+                    imageHtml = `<div class="pet-image" style="background-image: url('${photos[0]}'); background-size: cover; background-position: center;"></div>`;
+                }
+                
                 return `
                 <div class="pet-card" style="cursor: default;">
+                    ${imageHtml}
                     <div class="pet-info">
                         <div class="pet-name" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
                             <span>Найдено животное</span>
@@ -576,8 +767,37 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (contactInput) contactInput.value = announcement.contact;
         }
 
-        // Сохраняем ID объявления для обновления
+        // Обрабатываем фотографии
+        let photos = [];
+        if (announcement.photos) {
+            if (Array.isArray(announcement.photos)) {
+                photos = announcement.photos;
+            } else if (typeof announcement.photos === 'string') {
+                try {
+                    photos = JSON.parse(announcement.photos);
+                } catch (e) {
+                    console.warn('Ошибка парсинга фотографий при редактировании:', e);
+                    photos = [];
+                }
+            }
+        }
+        const photoPreview = isLost ? lostPhotoPreview : foundPhotoPreview;
+        if (photoPreview) {
+            if (photos.length > 0) {
+                photoPreview.innerHTML = photos.map((photo, index) => `
+                    <div class="photo-preview-item" data-photo-index="${index}">
+                        <img src="${photo}" alt="Фото ${index + 1}">
+                        <button type="button" class="remove-photo" onclick="removePhotoFromAnnouncement(${index}, '${isLost ? 'lost' : 'found'}')">×</button>
+                    </div>
+                `).join('');
+            } else {
+                photoPreview.innerHTML = '';
+            }
+        }
+
+        // Сохраняем ID объявления и существующие фотографии для обновления
         form.dataset.editId = announcement.id;
+        form.dataset.existingPhotos = JSON.stringify(photos);
 
         // Открываем форму
         const formSection = form.closest('.form-section');
@@ -588,4 +808,21 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Прокручиваем к форме
         form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
+
+    // Функция удаления фотографии при редактировании объявления
+    window.removePhotoFromAnnouncement = function(index, type) {
+        const formId = type === 'lost' ? 'lostPetForm' : 'foundPetForm';
+        const form = document.getElementById(formId);
+        if (!form || !form.dataset.editId) return;
+
+        const existingPhotos = JSON.parse(form.dataset.existingPhotos || '[]');
+        existingPhotos.splice(index, 1);
+        form.dataset.existingPhotos = JSON.stringify(existingPhotos);
+
+        const photoPreview = type === 'lost' ? lostPhotoPreview : foundPhotoPreview;
+        if (photoPreview) {
+            const item = photoPreview.querySelector(`[data-photo-index="${index}"]`);
+            if (item) item.remove();
+        }
+    };
 });
