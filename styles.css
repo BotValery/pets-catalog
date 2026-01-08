@@ -1783,6 +1783,9 @@ select option:hover {
     border-radius: 15px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     transition: transform 0.3s, box-shadow 0.3s;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    overflow-x: hidden;
 }
 
 .news-card:hover {
@@ -1809,6 +1812,10 @@ select option:hover {
     color: #333;
     font-weight: bold;
     flex: 1;
+    word-wrap: break-word;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
 }
 
 .news-badge {
@@ -1837,12 +1844,26 @@ select option:hover {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    word-wrap: break-word;
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 .news-content {
     color: #666;
     line-height: 1.8;
     font-size: 1rem;
+    word-wrap: break-word;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+}
+
+.news-content p {
+    word-wrap: break-word;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
 }
 
 /* Auth Page Styles */
@@ -3239,21 +3260,66 @@ input[readonly] {
     
     /* Добавляем отступ снизу для контента, чтобы текст не обрезался навигационной панелью браузера */
     main {
-        padding-bottom: 80px;
+        padding-bottom: 100px;
     }
     
     .content {
-        padding-bottom: 80px;
+        padding-bottom: 100px;
+    }
+    
+    .help-section {
+        padding-bottom: 20px;
+    }
+    
+    .news-list {
+        padding-bottom: 20px;
     }
     
     .news-card,
     .advice-card {
-        margin-bottom: 1rem;
+        margin-bottom: 1.5rem;
+        padding: 1.5rem !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+        overflow-x: hidden !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    
+    .news-title {
+        font-size: 1.2rem !important;
+        word-wrap: break-word !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
+        line-height: 1.4 !important;
     }
     
     .news-content,
     .advice-content {
         padding-bottom: 1rem;
+        word-wrap: break-word !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
+    }
+    
+    .news-content p {
+        word-wrap: break-word !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
+    }
+    
+    .news-meta {
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+    }
+    
+    .news-date,
+    .news-source {
+        word-wrap: break-word !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
     }
     
     /* Улучшаем отображение счетчика на мобильных */
@@ -3302,6 +3368,28 @@ input[readonly] {
     #emergencyImageContainer img,
     .emergency-image {
         max-height: 200px !important;
+    }
+    
+    /* Дополнительные стили для новостей на очень маленьких экранах */
+    .news-card {
+        padding: 1rem !important;
+    }
+    
+    .news-title {
+        font-size: 1.1rem !important;
+    }
+    
+    .news-content {
+        font-size: 0.95rem !important;
+        line-height: 1.6 !important;
+    }
+    
+    main {
+        padding-bottom: 120px !important;
+    }
+    
+    .content {
+        padding-bottom: 120px !important;
     }
 }
 
