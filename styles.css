@@ -3198,6 +3198,70 @@ input[readonly] {
     .verify-code-btn {
         width: 100%;
     }
+    
+    /* Исправление для секции экстренных ситуаций на мобильных */
+    .emergency-text-section {
+        padding: 1rem !important;
+        margin-top: 1.5rem !important;
+    }
+    
+    .emergency-text-section > div {
+        flex-direction: column !important;
+        gap: 1rem !important;
+    }
+    
+    #emergencyImageContainer {
+        width: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 0.75rem !important;
+    }
+    
+    #emergencyImageContainer img,
+    .emergency-image {
+        max-width: 100% !important;
+        max-height: 250px !important;
+        width: auto !important;
+        height: auto !important;
+        margin-right: 0 !important;
+    }
+    
+    #emergencyTextContainer {
+        width: 100% !important;
+        min-width: 100% !important;
+    }
+    
+    #emergencyText {
+        font-size: 1rem !important;
+        line-height: 1.5 !important;
+    }
+    
+    /* Добавляем отступ снизу для контента, чтобы текст не обрезался навигационной панелью браузера */
+    main {
+        padding-bottom: 80px;
+    }
+    
+    .content {
+        padding-bottom: 80px;
+    }
+    
+    .news-card,
+    .advice-card {
+        margin-bottom: 1rem;
+    }
+    
+    .news-content,
+    .advice-content {
+        padding-bottom: 1rem;
+    }
+    
+    /* Улучшаем отображение счетчика на мобильных */
+    .counter-box {
+        padding: 1rem 2rem !important;
+        width: 100%;
+        text-align: center;
+    }
 }
 
 @media (max-width: 480px) {
@@ -3220,6 +3284,24 @@ input[readonly] {
     
     .banner-card {
         padding: 1.5rem 1.1rem;
+    }
+    
+    /* Дополнительные исправления для очень маленьких экранов */
+    .counter-box {
+        padding: 0.75rem 1.5rem !important;
+    }
+    
+    .counter-number {
+        font-size: 2.5rem !important;
+    }
+    
+    .emergency-text-section {
+        padding: 0.75rem !important;
+    }
+    
+    #emergencyImageContainer img,
+    .emergency-image {
+        max-height: 200px !important;
     }
 }
 

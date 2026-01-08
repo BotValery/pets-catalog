@@ -68,6 +68,7 @@ async function loadEmergencyText() {
                             const imgElement = document.createElement('img');
                             imgElement.src = img;
                             imgElement.alt = `Изображение ${index + 1}`;
+                            imgElement.className = 'emergency-image';
                             imgElement.style.cssText = 'max-width: 300px; max-height: 300px; border-radius: 8px; object-fit: cover; box-shadow: 0 4px 8px rgba(0,0,0,0.2); margin-right: 1rem;';
                             imageContainer.appendChild(imgElement);
                         });
