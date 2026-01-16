@@ -1,10 +1,29 @@
-// Функция переключения состояния формы (глобальная для использования в HTML)
-window.toggleForm = function(headerElement) {
-    const formSection = headerElement.closest('.form-section');
-    if (formSection) {
-        formSection.classList.toggle('collapsed');
-    }
-};
+    // Функция переключения состояния формы (глобальная для использования в HTML)
+    window.toggleForm = function(headerElement) {
+        const formSection = headerElement.closest('.form-section');
+        if (formSection) {
+            formSection.classList.toggle('collapsed');
+        }
+    };
+
+    // Функция переключения сворачивания/разворачивания информации о животном
+    window.toggleAnnouncementDetails = function(headerElement) {
+        const detailsElement = headerElement.nextElementSibling;
+        const toggleIcon = headerElement.querySelector('.toggle-icon');
+        
+        if (detailsElement && detailsElement.classList.contains('announcement-details')) {
+            detailsElement.classList.toggle('collapsed');
+            
+            // Поворачиваем иконку
+            if (toggleIcon) {
+                if (detailsElement.classList.contains('collapsed')) {
+                    toggleIcon.style.transform = 'rotate(0deg)';
+                } else {
+                    toggleIcon.style.transform = 'rotate(180deg)';
+                }
+            }
+        }
+    };
 
 // Загрузка текста и картинки для страницы экстренных ситуаций
 async function loadEmergencyText() {
@@ -475,73 +494,86 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const hasPhotos = photos.length > 0;
                 
                 // Определяем изображение
-                let imageHtml = `<div class="pet-image">${petType === 'dog' ? '🐕' : '🐱'}</div>`;
+                let imageHtml = `<div class="pet-image announcement-pet-image">${petType === 'dog' ? '🐕' : '🐱'}</div>`;
                 if (hasPhotos) {
-                    imageHtml = `<div class="pet-image" style="background-image: url('${photos[0]}'); background-size: cover; background-position: center;"></div>`;
+                    imageHtml = `<div class="pet-image announcement-pet-image" style="background-image: url('${photos[0]}'); background-size: cover; background-position: center;"></div>`;
                 }
                 
                 return `
-                <div class="pet-card" style="cursor: default;">
+                <div class="pet-card announcement-pet-card" style="cursor: default;">
                     ${imageHtml}
                     <div class="pet-info">
-                        <div class="pet-name" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
-                            <span>${pet.name}</span>
-                            <span class="announcement-type type-lost" style="font-size: 0.75rem; padding: 0.2rem 0.6rem;">Потерян</span>
+                        <div class="pet-name announcement-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; cursor: pointer;" onclick="toggleAnnouncementDetails(this)">
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <span>${pet.name}</span>
+                                <span class="announcement-type type-lost" style="font-size: 0.75rem; padding: 0.2rem 0.6rem;">Потерян</span>
+                            </div>
+                            <span class="toggle-icon" style="font-size: 1.2rem; transition: transform 0.3s;">▼</span>
                         </div>
-                        <div class="pet-details-simple" style="align-items: flex-start; gap: 0.3rem; margin-bottom: 0.5rem;">
-                            <div class="pet-detail">
-                                <span class="pet-detail-icon">${pet.gender === 'male' ? '♂️' : '♀️'}</span>
-                                <span>${getGenderText(pet.gender)}</span>
+                        <div class="announcement-details collapsed">
+                            <div class="pet-details-simple" style="align-items: flex-start; gap: 0.3rem; margin-bottom: 0.5rem;">
+                                <div class="pet-detail">
+                                    <span class="pet-detail-icon">${pet.gender === 'male' ? '♂️' : '♀️'}</span>
+                                    <span>${getGenderText(pet.gender)}</span>
+                                </div>
+                                <div class="pet-detail">
+                                    <span class="pet-detail-icon">📅</span>
+                                    <span>${pet.age || 'Не указано'}</span>
+                                </div>
+                                <div class="pet-detail">
+                                    <span class="pet-detail-icon">${petType === 'dog' ? '🐕' : '🐱'}</span>
+                                    <span>${getTypeText(petType)}</span>
+                                </div>
+                                ${pet.breed ? `
+                                <div class="pet-detail">
+                                    <span class="pet-detail-icon">🏷️</span>
+                                    <span>${pet.breed}</span>
+                                </div>
+                                ` : ''}
+                                <div class="pet-detail">
+                                    <span class="pet-detail-icon">🎨</span>
+                                    <span>${pet.color}</span>
+                                </div>
+                                <div class="pet-detail">
+                                    <span class="pet-detail-icon">📍</span>
+                                    <span>${pet.location}</span>
+                                </div>
                             </div>
-                            <div class="pet-detail">
-                                <span class="pet-detail-icon">📅</span>
-                                <span>${pet.age || 'Не указано'}</span>
-                            </div>
-                            <div class="pet-detail">
-                                <span class="pet-detail-icon">${petType === 'dog' ? '🐕' : '🐱'}</span>
-                                <span>${getTypeText(petType)}</span>
-                            </div>
-                            ${pet.breed ? `
-                            <div class="pet-detail">
-                                <span class="pet-detail-icon">🏷️</span>
-                                <span>${pet.breed}</span>
+                            ${pet.description ? `
+                            <div style="font-size: 0.8rem; color: #666; margin-bottom: 0.5rem; line-height: 1.4;">
+                                <strong style="color: #333;">Описание:</strong> ${pet.description}
                             </div>
                             ` : ''}
-                            <div class="pet-detail">
-                                <span class="pet-detail-icon">🎨</span>
-                                <span>${pet.color}</span>
+                            <div style="font-size: 0.75rem; color: #666; margin-bottom: 0.3rem;">
+                                <strong style="color: #333;">Дата пропажи:</strong> ${formatDate(pet.date)}
                             </div>
-                            <div class="pet-detail">
-                                <span class="pet-detail-icon">📍</span>
-                                <span>${pet.location}</span>
+                            <div style="font-size: 0.75rem; color: #666; margin-bottom: 0.3rem;">
+                                <strong style="color: #333;">Контакты:</strong> ${pet.contact}
                             </div>
-                        </div>
-                        ${pet.description ? `
-                        <div style="font-size: 0.8rem; color: #666; margin-bottom: 0.5rem; line-height: 1.4;">
-                            <strong style="color: #333;">Описание:</strong> ${pet.description}
-                        </div>
-                        ` : ''}
-                        <div style="font-size: 0.75rem; color: #666; margin-bottom: 0.3rem;">
-                            <strong style="color: #333;">Дата пропажи:</strong> ${formatDate(pet.date)}
-                        </div>
-                        <div style="font-size: 0.75rem; color: #666; margin-bottom: 0.3rem;">
-                            <strong style="color: #333;">Контакты:</strong> ${pet.contact}
-                        </div>
-                        ${isOwner(pet) ? `
-                        <div class="pet-card-actions" onclick="event.stopPropagation()" style="display: flex; gap: 0.5rem; align-items: center; justify-content: space-between; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid #f0f0f0;">
-                            <button class="btn-resolve-announcement" onclick="resolveAnnouncement(${pet.id}, 'lost')" title="Отметить как найденное" style="background: #4caf50; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 5px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 0.3rem;">
-                                ✓ Найден
-                            </button>
-                            <div style="display: flex; gap: 0.3rem;">
-                                <button class="btn-edit-pet" onclick="editAnnouncement(${pet.id}, 'lost')" title="Редактировать">✏️</button>
-                                <button class="btn-delete-pet" onclick="deleteAnnouncement(${pet.id})" title="Удалить">🗑️</button>
+                            ${isOwner(pet) ? `
+                            <div class="pet-card-actions" onclick="event.stopPropagation()" style="display: flex; gap: 0.5rem; align-items: center; justify-content: space-between; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid #f0f0f0;">
+                                <button class="btn-resolve-announcement" onclick="resolveAnnouncement(${pet.id}, 'lost')" title="Отметить как найденное" style="background: #4caf50; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 5px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 0.3rem;">
+                                    ✓ Найден
+                                </button>
+                                <div style="display: flex; gap: 0.3rem;">
+                                    <button class="btn-edit-pet" onclick="editAnnouncement(${pet.id}, 'lost')" title="Редактировать">✏️</button>
+                                    <button class="btn-delete-pet" onclick="deleteAnnouncement(${pet.id})" title="Удалить">🗑️</button>
+                                </div>
                             </div>
+                            ` : ''}
                         </div>
-                        ` : ''}
                     </div>
                 </div>
             `;
             }).join('');
+            
+            // Инициализируем иконки для свернутых объявлений
+            setTimeout(() => {
+                const toggleIcons = lostAnnouncements.querySelectorAll('.toggle-icon');
+                toggleIcons.forEach(icon => {
+                    icon.style.transform = 'rotate(0deg)';
+                });
+            }, 100);
         } catch (error) {
             console.error('Ошибка загрузки объявлений:', error);
             lostAnnouncements.innerHTML = '<p style="text-align: center; color: #666; padding: 2rem;">Ошибка загрузки объявлений.</p>';
@@ -598,73 +630,86 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const hasPhotos = photos.length > 0;
                 
                 // Определяем изображение
-                let imageHtml = `<div class="pet-image">${petType === 'dog' ? '🐕' : '🐱'}</div>`;
+                let imageHtml = `<div class="pet-image announcement-pet-image">${petType === 'dog' ? '🐕' : '🐱'}</div>`;
                 if (hasPhotos) {
-                    imageHtml = `<div class="pet-image" style="background-image: url('${photos[0]}'); background-size: cover; background-position: center;"></div>`;
+                    imageHtml = `<div class="pet-image announcement-pet-image" style="background-image: url('${photos[0]}'); background-size: cover; background-position: center;"></div>`;
                 }
                 
                 return `
-                <div class="pet-card" style="cursor: default;">
+                <div class="pet-card announcement-pet-card" style="cursor: default;">
                     ${imageHtml}
                     <div class="pet-info">
-                        <div class="pet-name" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
-                            <span>Найдено животное</span>
-                            <span class="announcement-type type-found" style="font-size: 0.75rem; padding: 0.2rem 0.6rem;">Найден</span>
+                        <div class="pet-name announcement-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; cursor: pointer;" onclick="toggleAnnouncementDetails(this)">
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <span>Найдено животное</span>
+                                <span class="announcement-type type-found" style="font-size: 0.75rem; padding: 0.2rem 0.6rem;">Найден</span>
+                            </div>
+                            <span class="toggle-icon" style="font-size: 1.2rem; transition: transform 0.3s;">▼</span>
                         </div>
-                        <div class="pet-details-simple" style="align-items: flex-start; gap: 0.3rem; margin-bottom: 0.5rem;">
-                            <div class="pet-detail">
-                                <span class="pet-detail-icon">${pet.gender === 'male' ? '♂️' : pet.gender === 'female' ? '♀️' : '❓'}</span>
-                                <span>${getGenderText(pet.gender)}</span>
+                        <div class="announcement-details collapsed">
+                            <div class="pet-details-simple" style="align-items: flex-start; gap: 0.3rem; margin-bottom: 0.5rem;">
+                                <div class="pet-detail">
+                                    <span class="pet-detail-icon">${pet.gender === 'male' ? '♂️' : pet.gender === 'female' ? '♀️' : '❓'}</span>
+                                    <span>${getGenderText(pet.gender)}</span>
+                                </div>
+                                <div class="pet-detail">
+                                    <span class="pet-detail-icon">📅</span>
+                                    <span>${pet.age || 'Неизвестно'}</span>
+                                </div>
+                                <div class="pet-detail">
+                                    <span class="pet-detail-icon">${petType === 'dog' ? '🐕' : '🐱'}</span>
+                                    <span>${getTypeText(petType)}</span>
+                                </div>
+                                ${pet.breed ? `
+                                <div class="pet-detail">
+                                    <span class="pet-detail-icon">🏷️</span>
+                                    <span>${pet.breed}</span>
+                                </div>
+                                ` : ''}
+                                <div class="pet-detail">
+                                    <span class="pet-detail-icon">🎨</span>
+                                    <span>${pet.color}</span>
+                                </div>
+                                <div class="pet-detail">
+                                    <span class="pet-detail-icon">📍</span>
+                                    <span>${pet.location}</span>
+                                </div>
                             </div>
-                            <div class="pet-detail">
-                                <span class="pet-detail-icon">📅</span>
-                                <span>${pet.age || 'Неизвестно'}</span>
-                            </div>
-                            <div class="pet-detail">
-                                <span class="pet-detail-icon">${petType === 'dog' ? '🐕' : '🐱'}</span>
-                                <span>${getTypeText(petType)}</span>
-                            </div>
-                            ${pet.breed ? `
-                            <div class="pet-detail">
-                                <span class="pet-detail-icon">🏷️</span>
-                                <span>${pet.breed}</span>
+                            ${pet.description ? `
+                            <div style="font-size: 0.8rem; color: #666; margin-bottom: 0.5rem; line-height: 1.4;">
+                                <strong style="color: #333;">Описание:</strong> ${pet.description}
                             </div>
                             ` : ''}
-                            <div class="pet-detail">
-                                <span class="pet-detail-icon">🎨</span>
-                                <span>${pet.color}</span>
+                            <div style="font-size: 0.75rem; color: #666; margin-bottom: 0.3rem;">
+                                <strong style="color: #333;">Дата находки:</strong> ${formatDate(pet.date)}
                             </div>
-                            <div class="pet-detail">
-                                <span class="pet-detail-icon">📍</span>
-                                <span>${pet.location}</span>
+                            <div style="font-size: 0.75rem; color: #666; margin-bottom: 0.3rem;">
+                                <strong style="color: #333;">Контакты:</strong> ${pet.contact}
                             </div>
-                        </div>
-                        ${pet.description ? `
-                        <div style="font-size: 0.8rem; color: #666; margin-bottom: 0.5rem; line-height: 1.4;">
-                            <strong style="color: #333;">Описание:</strong> ${pet.description}
-                        </div>
-                        ` : ''}
-                        <div style="font-size: 0.75rem; color: #666; margin-bottom: 0.3rem;">
-                            <strong style="color: #333;">Дата находки:</strong> ${formatDate(pet.date)}
-                        </div>
-                        <div style="font-size: 0.75rem; color: #666; margin-bottom: 0.3rem;">
-                            <strong style="color: #333;">Контакты:</strong> ${pet.contact}
-                        </div>
-                        ${isOwner(pet) ? `
-                        <div class="pet-card-actions" onclick="event.stopPropagation()" style="display: flex; gap: 0.5rem; align-items: center; justify-content: space-between; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid #f0f0f0;">
-                            <button class="btn-resolve-announcement" onclick="resolveAnnouncement(${pet.id}, 'found')" title="Отметить как возвращенное" style="background: #4caf50; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 5px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 0.3rem;">
-                                ✓ Вернул
-                            </button>
-                            <div style="display: flex; gap: 0.3rem;">
-                                <button class="btn-edit-pet" onclick="editAnnouncement(${pet.id}, 'found')" title="Редактировать">✏️</button>
-                                <button class="btn-delete-pet" onclick="deleteAnnouncement(${pet.id})" title="Удалить">🗑️</button>
+                            ${isOwner(pet) ? `
+                            <div class="pet-card-actions" onclick="event.stopPropagation()" style="display: flex; gap: 0.5rem; align-items: center; justify-content: space-between; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid #f0f0f0;">
+                                <button class="btn-resolve-announcement" onclick="resolveAnnouncement(${pet.id}, 'found')" title="Отметить как возвращенное" style="background: #4caf50; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 5px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 0.3rem;">
+                                    ✓ Вернул
+                                </button>
+                                <div style="display: flex; gap: 0.3rem;">
+                                    <button class="btn-edit-pet" onclick="editAnnouncement(${pet.id}, 'found')" title="Редактировать">✏️</button>
+                                    <button class="btn-delete-pet" onclick="deleteAnnouncement(${pet.id})" title="Удалить">🗑️</button>
+                                </div>
                             </div>
+                            ` : ''}
                         </div>
-                        ` : ''}
                     </div>
                 </div>
             `;
             }).join('');
+            
+            // Инициализируем иконки для свернутых объявлений
+            setTimeout(() => {
+                const toggleIcons = foundAnnouncements.querySelectorAll('.toggle-icon');
+                toggleIcons.forEach(icon => {
+                    icon.style.transform = 'rotate(0deg)';
+                });
+            }, 100);
         } catch (error) {
             console.error('Ошибка загрузки объявлений:', error);
             foundAnnouncements.innerHTML = '<p style="text-align: center; color: #666; padding: 2rem;">Ошибка загрузки объявлений.</p>';

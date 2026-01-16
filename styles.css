@@ -1045,7 +1045,7 @@ select option:hover {
 #lostAnnouncements,
 #foundAnnouncements {
     display: grid !important;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 320px)) !important;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 350px)) !important;
     gap: 1rem !important;
     justify-content: start !important;
 }
@@ -1062,11 +1062,28 @@ select option:hover {
     width: 100% !important;
 }
 
+/* Увеличенные карточки для объявлений с большими фотографиями */
+#lostAnnouncements .announcement-pet-card,
+#foundAnnouncements .announcement-pet-card,
+.announcements-list .announcement-pet-card {
+    max-width: 350px !important;
+    width: 100% !important;
+}
+
 #lostAnnouncements .pet-image,
 #foundAnnouncements .pet-image,
 .announcements-list .pet-image {
     height: 120px !important;
     font-size: 3rem !important;
+}
+
+/* Увеличенные фотографии для объявлений */
+#lostAnnouncements .announcement-pet-image,
+#foundAnnouncements .announcement-pet-image,
+.announcements-list .announcement-pet-image {
+    height: 300px !important;
+    min-height: 300px !important;
+    font-size: 5rem !important;
 }
 
 #lostAnnouncements .pet-info,
@@ -1141,6 +1158,14 @@ select option:hover {
         font-size: 2.5rem !important;
     }
     
+    #lostAnnouncements .announcement-pet-image,
+    #foundAnnouncements .announcement-pet-image,
+    .announcements-list .announcement-pet-image {
+        height: 250px !important;
+        min-height: 250px !important;
+        font-size: 4rem !important;
+    }
+    
     #lostAnnouncements .pet-info,
     #foundAnnouncements .pet-info,
     .announcements-list .pet-info {
@@ -1155,6 +1180,45 @@ select option:hover {
         grid-template-columns: 1fr;
         gap: 0.75rem;
     }
+    
+    #lostAnnouncements .announcement-pet-image,
+    #foundAnnouncements .announcement-pet-image,
+    .announcements-list .announcement-pet-image {
+        height: 200px !important;
+        min-height: 200px !important;
+        font-size: 3.5rem !important;
+    }
+}
+
+/* Стили для сворачиваемого контента объявлений */
+.announcement-details {
+    max-height: 2000px;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out, opacity 0.3s ease-out, margin 0.3s ease-out, padding 0.3s ease-out;
+    opacity: 1;
+    margin-top: 0.5rem;
+}
+
+.announcement-details.collapsed {
+    max-height: 0 !important;
+    opacity: 0;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    overflow: hidden;
+}
+
+.announcement-header {
+    user-select: none;
+}
+
+.announcement-header:hover {
+    opacity: 0.8;
+}
+
+.announcement-pet-card {
+    overflow: hidden;
 }
 
 .announcement-card {
