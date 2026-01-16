@@ -132,6 +132,13 @@ document.addEventListener('DOMContentLoaded', async function() {
     const foundPhotos = document.getElementById('foundPhotos');
     const lostPhotoPreview = document.getElementById('lostPhotoPreview');
     const foundPhotoPreview = document.getElementById('foundPhotoPreview');
+    const dateFilterFrom = document.getElementById('dateFilterFrom');
+    const dateFilterTo = document.getElementById('dateFilterTo');
+    const resetDateFilterBtn = document.getElementById('resetDateFilter');
+    
+    // Переменные для хранения всех объявлений
+    let allLostPets = [];
+    let allFoundPets = [];
 
     // Устанавливаем сегодняшнюю дату по умолчанию (только если формы видны)
     const today = new Date().toISOString().split('T')[0];
@@ -419,17 +426,97 @@ document.addEventListener('DOMContentLoaded', async function() {
                 foundAnnouncements.style.display = 'none';
                 foundAnnouncements.innerHTML = ''; // Очищаем неактивный контейнер
                 lostAnnouncements.style.display = 'grid';
-                // Перерисовываем только потерянные
-                await renderLostAnnouncements();
+                // Перерисовываем только потерянные (с учетом фильтра)
+                const fromDate = dateFilterFrom ? dateFilterFrom.value : '';
+                const toDate = dateFilterTo ? dateFilterTo.value : '';
+                if (allLostPets.length > 0) {
+                    renderFilteredLostAnnouncements(fromDate, toDate);
+                } else {
+                    await renderLostAnnouncements();
+                }
             } else {
                 lostAnnouncements.style.display = 'none';
                 lostAnnouncements.innerHTML = ''; // Очищаем неактивный контейнер
                 foundAnnouncements.style.display = 'grid';
-                // Перерисовываем только найденные
-                await renderFoundAnnouncements();
+                // Перерисовываем только найденные (с учетом фильтра)
+                const fromDate = dateFilterFrom ? dateFilterFrom.value : '';
+                const toDate = dateFilterTo ? dateFilterTo.value : '';
+                if (allFoundPets.length > 0) {
+                    renderFilteredFoundAnnouncements(fromDate, toDate);
+                } else {
+                    await renderFoundAnnouncements();
+                }
             }
         });
     });
+    
+    // Обработчики фильтра по дате
+    if (dateFilterFrom) {
+        dateFilterFrom.addEventListener('change', function() {
+            applyDateFilter();
+        });
+    }
+    
+    if (dateFilterTo) {
+        dateFilterTo.addEventListener('change', function() {
+            applyDateFilter();
+        });
+    }
+    
+    if (resetDateFilterBtn) {
+        resetDateFilterBtn.addEventListener('click', function() {
+            dateFilterFrom.value = '';
+            dateFilterTo.value = '';
+            applyDateFilter();
+        });
+    }
+    
+    // Функция применения фильтра по дате
+    function applyDateFilter() {
+        const fromDate = dateFilterFrom ? dateFilterFrom.value : '';
+        const toDate = dateFilterTo ? dateFilterTo.value : '';
+        
+        // Определяем активную вкладку
+        const activeTab = document.querySelector('.tab-btn.active');
+        if (activeTab) {
+            const tab = activeTab.dataset.tab;
+            if (tab === 'lost') {
+                renderFilteredLostAnnouncements(fromDate, toDate);
+            } else {
+                renderFilteredFoundAnnouncements(fromDate, toDate);
+            }
+        }
+    }
+    
+    // Функция фильтрации по дате
+    function filterByDate(pets, fromDate, toDate) {
+        if (!fromDate && !toDate) {
+            return pets;
+        }
+        
+        return pets.filter(pet => {
+            if (!pet.date) return false;
+            
+            const petDate = new Date(pet.date);
+            petDate.setHours(0, 0, 0, 0);
+            
+            if (fromDate && toDate) {
+                const from = new Date(fromDate);
+                const to = new Date(toDate);
+                to.setHours(23, 59, 59, 999);
+                return petDate >= from && petDate <= to;
+            } else if (fromDate) {
+                const from = new Date(fromDate);
+                return petDate >= from;
+            } else if (toDate) {
+                const to = new Date(toDate);
+                to.setHours(23, 59, 59, 999);
+                return petDate <= to;
+            }
+            
+            return true;
+        });
+    }
 
     // Функция обновления счетчика
     function updateCounterDisplay() {
@@ -441,6 +528,250 @@ document.addEventListener('DOMContentLoaded', async function() {
     async function renderAnnouncements() {
         await renderLostAnnouncements();
         await renderFoundAnnouncements();
+    }
+    
+    // Функция отображения отфильтрованных потерянных объявлений
+    function renderFilteredLostAnnouncements(fromDate, toDate) {
+        if (!lostAnnouncements || allLostPets.length === 0) {
+            return;
+        }
+        
+        const filteredPets = filterByDate(allLostPets, fromDate, toDate);
+        
+        if (filteredPets.length === 0) {
+            lostAnnouncements.innerHTML = '<p style="text-align: center; color: #666; padding: 2rem;">По выбранным датам объявлений не найдено.</p>';
+            return;
+        }
+        
+        const currentUser = AuthSystem.getCurrentUser();
+        
+        const isOwner = (announcement) => {
+            if (!currentUser) {
+                return false;
+            }
+            return announcement.userId != null && announcement.userId === currentUser.id;
+        };
+        
+        lostAnnouncements.innerHTML = filteredPets.map(pet => {
+            const ownerCheck = isOwner(pet);
+            const petType = pet.type_animal || pet.petType;
+            let photos = [];
+            if (pet.photos) {
+                if (Array.isArray(pet.photos)) {
+                    photos = pet.photos;
+                } else if (typeof pet.photos === 'string') {
+                    try {
+                        photos = JSON.parse(pet.photos);
+                    } catch (e) {
+                        console.warn('Ошибка парсинга фотографий:', e);
+                        photos = [];
+                    }
+                }
+            }
+            const hasPhotos = photos.length > 0;
+            
+            let imageHtml = `<div class="pet-image announcement-pet-image">${petType === 'dog' ? '🐕' : '🐱'}</div>`;
+            if (hasPhotos) {
+                imageHtml = `<div class="pet-image announcement-pet-image" style="background-image: url('${photos[0]}'); background-size: cover; background-position: center;"></div>`;
+            }
+            
+            return `
+                <div class="pet-card announcement-pet-card" style="cursor: default;">
+                    ${imageHtml}
+                    <div class="pet-info">
+                        <div class="pet-name announcement-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; cursor: pointer;" onclick="toggleAnnouncementDetails(this)">
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <span>${pet.name}</span>
+                                <span class="announcement-type type-lost" style="font-size: 0.75rem; padding: 0.2rem 0.6rem;">Потерян</span>
+                            </div>
+                            <span class="toggle-icon" style="font-size: 1.2rem; transition: transform 0.3s;">▼</span>
+                        </div>
+                        <div class="announcement-details collapsed">
+                            <div class="pet-details-simple" style="align-items: flex-start; gap: 0.3rem; margin-bottom: 0.5rem;">
+                                <div class="pet-detail">
+                                    <span class="pet-detail-icon">${pet.gender === 'male' ? '♂️' : '♀️'}</span>
+                                    <span>${getGenderText(pet.gender)}</span>
+                                </div>
+                                <div class="pet-detail">
+                                    <span class="pet-detail-icon">📅</span>
+                                    <span>${pet.age || 'Не указано'}</span>
+                                </div>
+                                <div class="pet-detail">
+                                    <span class="pet-detail-icon">${petType === 'dog' ? '🐕' : '🐱'}</span>
+                                    <span>${getTypeText(petType)}</span>
+                                </div>
+                                ${pet.breed ? `
+                                <div class="pet-detail">
+                                    <span class="pet-detail-icon">🏷️</span>
+                                    <span>${pet.breed}</span>
+                                </div>
+                                ` : ''}
+                                <div class="pet-detail">
+                                    <span class="pet-detail-icon">🎨</span>
+                                    <span>${pet.color}</span>
+                                </div>
+                                <div class="pet-detail">
+                                    <span class="pet-detail-icon">📍</span>
+                                    <span>${pet.location}</span>
+                                </div>
+                            </div>
+                            ${pet.description ? `
+                            <div style="font-size: 0.8rem; color: #666; margin-bottom: 0.5rem; line-height: 1.4;">
+                                <strong style="color: #333;">Описание:</strong> ${pet.description}
+                            </div>
+                            ` : ''}
+                            <div style="font-size: 0.75rem; color: #666; margin-bottom: 0.3rem;">
+                                <strong style="color: #333;">Дата пропажи:</strong> ${formatDate(pet.date)}
+                            </div>
+                            <div style="font-size: 0.75rem; color: #666; margin-bottom: 0.3rem;">
+                                <strong style="color: #333;">Контакты:</strong> ${pet.contact}
+                            </div>
+                            ${isOwner(pet) ? `
+                            <div class="pet-card-actions" onclick="event.stopPropagation()" style="display: flex; gap: 0.5rem; align-items: center; justify-content: space-between; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid #f0f0f0;">
+                                <button class="btn-resolve-announcement" onclick="resolveAnnouncement(${pet.id}, 'lost')" title="Отметить как найденное" style="background: #4caf50; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 5px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 0.3rem;">
+                                    ✓ Найден
+                                </button>
+                                <div style="display: flex; gap: 0.3rem;">
+                                    <button class="btn-edit-pet" onclick="editAnnouncement(${pet.id}, 'lost')" title="Редактировать">✏️</button>
+                                    <button class="btn-delete-pet" onclick="deleteAnnouncement(${pet.id})" title="Удалить">🗑️</button>
+                                </div>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        // Инициализируем иконки для свернутых объявлений
+        setTimeout(() => {
+            const toggleIcons = lostAnnouncements.querySelectorAll('.toggle-icon');
+            toggleIcons.forEach(icon => {
+                icon.style.transform = 'rotate(0deg)';
+            });
+        }, 100);
+    }
+    
+    // Функция отображения отфильтрованных найденных объявлений
+    function renderFilteredFoundAnnouncements(fromDate, toDate) {
+        if (!foundAnnouncements || allFoundPets.length === 0) {
+            return;
+        }
+        
+        const filteredPets = filterByDate(allFoundPets, fromDate, toDate);
+        
+        if (filteredPets.length === 0) {
+            foundAnnouncements.innerHTML = '<p style="text-align: center; color: #666; padding: 2rem;">По выбранным датам объявлений не найдено.</p>';
+            return;
+        }
+        
+        const currentUser = AuthSystem.getCurrentUser();
+        
+        const isOwner = (announcement) => {
+            if (!currentUser) {
+                return false;
+            }
+            return announcement.userId != null && announcement.userId === currentUser.id;
+        };
+        
+        foundAnnouncements.innerHTML = filteredPets.map(pet => {
+            const ownerCheck = isOwner(pet);
+            const petType = pet.type_animal || pet.petType;
+            let photos = [];
+            if (pet.photos) {
+                if (Array.isArray(pet.photos)) {
+                    photos = pet.photos;
+                } else if (typeof pet.photos === 'string') {
+                    try {
+                        photos = JSON.parse(pet.photos);
+                    } catch (e) {
+                        console.warn('Ошибка парсинга фотографий:', e);
+                        photos = [];
+                    }
+                }
+            }
+            const hasPhotos = photos.length > 0;
+            
+            let imageHtml = `<div class="pet-image announcement-pet-image">${petType === 'dog' ? '🐕' : '🐱'}</div>`;
+            if (hasPhotos) {
+                imageHtml = `<div class="pet-image announcement-pet-image" style="background-image: url('${photos[0]}'); background-size: cover; background-position: center;"></div>`;
+            }
+            
+            return `
+                <div class="pet-card announcement-pet-card" style="cursor: default;">
+                    ${imageHtml}
+                    <div class="pet-info">
+                        <div class="pet-name announcement-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; cursor: pointer;" onclick="toggleAnnouncementDetails(this)">
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <span>Найдено животное</span>
+                                <span class="announcement-type type-found" style="font-size: 0.75rem; padding: 0.2rem 0.6rem;">Найден</span>
+                            </div>
+                            <span class="toggle-icon" style="font-size: 1.2rem; transition: transform 0.3s;">▼</span>
+                        </div>
+                        <div class="announcement-details collapsed">
+                            <div class="pet-details-simple" style="align-items: flex-start; gap: 0.3rem; margin-bottom: 0.5rem;">
+                                <div class="pet-detail">
+                                    <span class="pet-detail-icon">${pet.gender === 'male' ? '♂️' : pet.gender === 'female' ? '♀️' : '❓'}</span>
+                                    <span>${getGenderText(pet.gender)}</span>
+                                </div>
+                                <div class="pet-detail">
+                                    <span class="pet-detail-icon">📅</span>
+                                    <span>${pet.age || 'Неизвестно'}</span>
+                                </div>
+                                <div class="pet-detail">
+                                    <span class="pet-detail-icon">${petType === 'dog' ? '🐕' : '🐱'}</span>
+                                    <span>${getTypeText(petType)}</span>
+                                </div>
+                                ${pet.breed ? `
+                                <div class="pet-detail">
+                                    <span class="pet-detail-icon">🏷️</span>
+                                    <span>${pet.breed}</span>
+                                </div>
+                                ` : ''}
+                                <div class="pet-detail">
+                                    <span class="pet-detail-icon">🎨</span>
+                                    <span>${pet.color}</span>
+                                </div>
+                                <div class="pet-detail">
+                                    <span class="pet-detail-icon">📍</span>
+                                    <span>${pet.location}</span>
+                                </div>
+                            </div>
+                            ${pet.description ? `
+                            <div style="font-size: 0.8rem; color: #666; margin-bottom: 0.5rem; line-height: 1.4;">
+                                <strong style="color: #333;">Описание:</strong> ${pet.description}
+                            </div>
+                            ` : ''}
+                            <div style="font-size: 0.75rem; color: #666; margin-bottom: 0.3rem;">
+                                <strong style="color: #333;">Дата находки:</strong> ${formatDate(pet.date)}
+                            </div>
+                            <div style="font-size: 0.75rem; color: #666; margin-bottom: 0.3rem;">
+                                <strong style="color: #333;">Контакты:</strong> ${pet.contact}
+                            </div>
+                            ${isOwner(pet) ? `
+                            <div class="pet-card-actions" onclick="event.stopPropagation()" style="display: flex; gap: 0.5rem; align-items: center; justify-content: space-between; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid #f0f0f0;">
+                                <button class="btn-resolve-announcement" onclick="resolveAnnouncement(${pet.id}, 'found')" title="Отметить как возвращенное" style="background: #4caf50; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 5px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 0.3rem;">
+                                    ✓ Вернул
+                                </button>
+                                <div style="display: flex; gap: 0.3rem;">
+                                    <button class="btn-edit-pet" onclick="editAnnouncement(${pet.id}, 'found')" title="Редактировать">✏️</button>
+                                    <button class="btn-delete-pet" onclick="deleteAnnouncement(${pet.id})" title="Удалить">🗑️</button>
+                                </div>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        // Инициализируем иконки для свернутых объявлений
+        setTimeout(() => {
+            const toggleIcons = foundAnnouncements.querySelectorAll('.toggle-icon');
+            toggleIcons.forEach(icon => {
+                icon.style.transform = 'rotate(0deg)';
+            });
+        }, 100);
     }
 
     // Функция отображения объявлений о потерянных животных
@@ -460,7 +791,15 @@ document.addEventListener('DOMContentLoaded', async function() {
             
             const lostPets = await AnnouncementsSystem.getLostPets();
             
-            if (lostPets.length === 0) {
+            // Сохраняем все объявления
+            allLostPets = lostPets;
+            
+            // Применяем фильтр по дате
+            const fromDate = dateFilterFrom ? dateFilterFrom.value : '';
+            const toDate = dateFilterTo ? dateFilterTo.value : '';
+            const filteredPets = filterByDate(lostPets, fromDate, toDate);
+            
+            if (filteredPets.length === 0) {
                 lostAnnouncements.innerHTML = '<p style="text-align: center; color: #666; padding: 2rem;">Пока нет объявлений о потерянных животных.</p>';
                 return;
             }
@@ -475,7 +814,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 return announcement.userId != null && announcement.userId === currentUser.id;
             };
 
-            lostAnnouncements.innerHTML = lostPets.map(pet => {
+            lostAnnouncements.innerHTML = filteredPets.map(pet => {
                 const ownerCheck = isOwner(pet);
                 const petType = pet.type_animal || pet.petType;
                 let photos = [];
@@ -596,6 +935,15 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
             
             const foundPets = await AnnouncementsSystem.getFoundPets();
+            
+            // Сохраняем все объявления
+            allFoundPets = foundPets;
+            
+            // Применяем фильтр по дате
+            const fromDate = dateFilterFrom ? dateFilterFrom.value : '';
+            const toDate = dateFilterTo ? dateFilterTo.value : '';
+            const filteredPets = filterByDate(foundPets, fromDate, toDate);
+            
             const currentUser = AuthSystem.getCurrentUser();
             
             const isOwner = (announcement) => {
@@ -606,12 +954,12 @@ document.addEventListener('DOMContentLoaded', async function() {
                 return announcement.userId != null && announcement.userId === currentUser.id;
             };
             
-            if (foundPets.length === 0) {
+            if (filteredPets.length === 0) {
                 foundAnnouncements.innerHTML = '<p style="text-align: center; color: #666; padding: 2rem;">Пока нет объявлений о найденных животных.</p>';
                 return;
             }
 
-            foundAnnouncements.innerHTML = foundPets.map(pet => {
+            foundAnnouncements.innerHTML = filteredPets.map(pet => {
                 const ownerCheck = isOwner(pet);
                 const petType = pet.type_animal || pet.petType;
                 let photos = [];

@@ -225,6 +225,22 @@
                         <button class="tab-btn active" data-tab="lost">Потерянные</button>
                         <button class="tab-btn" data-tab="found">Найденные</button>
                     </div>
+                    
+                    <!-- Фильтр по дате -->
+                    <div class="announcements-date-filter">
+                        <div class="date-filter-row">
+                            <div class="date-filter-group">
+                                <label for="dateFilterFrom">От:</label>
+                                <input type="date" id="dateFilterFrom" class="date-filter-input">
+                            </div>
+                            <div class="date-filter-group">
+                                <label for="dateFilterTo">До:</label>
+                                <input type="date" id="dateFilterTo" class="date-filter-input">
+                            </div>
+                            <button id="resetDateFilter" class="reset-date-filter-btn">Сбросить</button>
+                        </div>
+                    </div>
+                    
                     <div id="lostAnnouncements" class="announcements-list"></div>
                     <div id="foundAnnouncements" class="announcements-list" style="display: none;"></div>
                 </div>

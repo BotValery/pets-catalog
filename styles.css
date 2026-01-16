@@ -1041,8 +1041,87 @@ select option:hover {
 .announcements-tabs {
     display: flex;
     gap: 1rem;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
     border-bottom: 2px solid #f0f0f0;
+}
+
+/* Фильтр по дате для объявлений */
+.announcements-date-filter {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border: 1px solid #e0e0e0;
+}
+
+.date-filter-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.date-filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+    min-width: 150px;
+}
+
+.date-filter-group label {
+    font-size: 0.9rem;
+    color: #666;
+    font-weight: 500;
+}
+
+.date-filter-input {
+    padding: 0.6rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    background: white;
+    color: #333;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.date-filter-input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.reset-date-filter-btn {
+    padding: 0.6rem 1.2rem;
+    background: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    color: #666;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    white-space: nowrap;
+    height: fit-content;
+}
+
+.reset-date-filter-btn:hover {
+    background: #e0e0e0;
+    border-color: #ccc;
+    color: #333;
+}
+
+@media (max-width: 768px) {
+    .date-filter-row {
+        flex-direction: column;
+    }
+    
+    .date-filter-group {
+        min-width: 100%;
+    }
+    
+    .reset-date-filter-btn {
+        width: 100%;
+    }
 }
 
 .tab-btn {
