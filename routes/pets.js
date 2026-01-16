@@ -118,15 +118,24 @@ router.get('/', [
         }
 
         sql += ' ORDER BY createdAt DESC';
+        
+        // Ограничиваем количество записей для оптимизации (можно увеличить при необходимости)
+        const limit = parseInt(req.query.limit) || 1000;
+        sql += ` LIMIT ${limit}`;
 
         const pets = await db.all(sql, params);
         
-        // Парсим photos из JSON строки
+        // Парсим photos из JSON строки (только первую фотографию для списка, если не запрошены все)
+        const includeAllPhotos = req.query.allPhotos === 'true';
         const petsWithParsedPhotos = pets.map(pet => {
             let photos = [];
             if (pet.photos) {
                 try {
                     photos = JSON.parse(pet.photos);
+                    // Для списка возвращаем только первую фотографию (экономия трафика)
+                    if (!includeAllPhotos && photos.length > 0) {
+                        photos = [photos[0]];
+                    }
                 } catch (parseError) {
                     console.warn('Ошибка парсинга photos для питомца', pet.id, parseError);
                     photos = [];

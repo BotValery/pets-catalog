@@ -28,6 +28,9 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Объявляем переменную для хранения всех животных
     let allPets = [];
+    let petsCache = null;
+    let cacheTimestamp = null;
+    const CACHE_DURATION = 30000; // 30 секунд кэширования
 
     // Обновляем счетчик пристроенных животных из базы данных
     await updateAdoptedCounter();
@@ -253,6 +256,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                     }
                     
                 shelterPetFormSection.style.display = 'none';
+                // Инвалидируем кэш перед загрузкой
+                petsCache = null;
+                cacheTimestamp = null;
                 await loadPets();
                 } catch (error) {
                     console.error('Ошибка размещения:', error);
@@ -305,12 +311,27 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Загрузка животных из базы данных
     async function loadPets() {
+        // Показываем индикатор загрузки
+        petsGrid.innerHTML = '<div style="text-align: center; padding: 2rem; color: #666;">Загрузка животных...</div>';
+        
         try {
+            // Проверяем кэш
+            const now = Date.now();
+            if (petsCache && cacheTimestamp && (now - cacheTimestamp) < CACHE_DURATION) {
+                allPets = petsCache;
+                renderPets(allPets);
+                return;
+            }
+            
             const data = await apiClient.getPets();
             allPets = data.pets || [];
             
             // Фильтруем только непристроенных животных
             allPets = allPets.filter(pet => !pet.adopted);
+            
+            // Обновляем кэш
+            petsCache = allPets;
+            cacheTimestamp = now;
             
             renderPets(allPets);
         } catch (error) {
@@ -345,20 +366,27 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Функция отображения животных
     function renderPets(pets) {
-        petsGrid.innerHTML = '';
         resultsCount.textContent = pets.length;
 
         if (pets.length === 0) {
+            petsGrid.innerHTML = '';
             noResults.style.display = 'block';
             return;
         }
 
         noResults.style.display = 'none';
 
+        // Используем DocumentFragment для оптимизации рендеринга
+        const fragment = document.createDocumentFragment();
+        
         pets.forEach(pet => {
             const petCard = createPetCard(pet);
-            petsGrid.appendChild(petCard);
+            fragment.appendChild(petCard);
         });
+        
+        // Очищаем и добавляем все карточки за один раз
+        petsGrid.innerHTML = '';
+        petsGrid.appendChild(fragment);
     }
 
     // Функция создания карточки животного
@@ -374,10 +402,12 @@ document.addEventListener('DOMContentLoaded', async function() {
         const currentUser = AuthSystem.getCurrentUser();
         const isOwner = currentUser && currentUser.type === 'shelter' && pet.shelterId === currentUser.id;
 
-        // Определяем изображение
+        // Определяем изображение с ленивой загрузкой
         let imageHtml = `<div class="pet-image">${pet.icon || (pet.type === 'dog' ? '🐕' : '🐱')}</div>`;
         if (pet.photos && pet.photos.length > 0) {
-            imageHtml = `<div class="pet-image" style="background-image: url('${pet.photos[0]}'); background-size: cover; background-position: center;"></div>`;
+            // Используем data-src для ленивой загрузки
+            const imageUrl = pet.photos[0];
+            imageHtml = `<div class="pet-image lazy-image" data-src="${imageUrl}" style="background-size: cover; background-position: center; background-color: #f0f0f0;"></div>`;
         }
 
         // Упрощенная карточка - только пол и возраст
@@ -409,6 +439,29 @@ document.addEventListener('DOMContentLoaded', async function() {
                 window.location.href = `pet-detail.html?id=${pet.id}`;
             }
         });
+
+        // Ленивая загрузка изображения
+        const lazyImage = card.querySelector('.lazy-image');
+        if (lazyImage) {
+            const imageUrl = lazyImage.getAttribute('data-src');
+            if (imageUrl) {
+                // Используем Intersection Observer для ленивой загрузки
+                const imageObserver = new IntersectionObserver((entries, observer) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const img = entry.target;
+                            img.style.backgroundImage = `url('${imageUrl}')`;
+                            img.classList.remove('lazy-image');
+                            observer.unobserve(img);
+                        }
+                    });
+                }, {
+                    rootMargin: '50px' // Начинаем загрузку за 50px до появления в viewport
+                });
+                
+                imageObserver.observe(lazyImage);
+            }
+        }
 
         return card;
     }
@@ -678,6 +731,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                 
                 // Обновляем счетчик и список животных при любом изменении статуса
                 await updateAdoptedCounter();
+                // Инвалидируем кэш перед загрузкой
+                petsCache = null;
+                cacheTimestamp = null;
                 await loadPets();
                 
                 // Обновляем модальное окно
@@ -731,6 +787,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         try {
             await apiClient.deletePet(petId);
             NotificationSystem.success('Питомец успешно удален');
+            // Инвалидируем кэш перед загрузкой
+            petsCache = null;
+            cacheTimestamp = null;
             await loadPets();
         } catch (error) {
             console.error('Ошибка удаления питомца:', error);
