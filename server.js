@@ -210,7 +210,8 @@ const checkNginx = () => {
     }
 };
 
-const nginxInUse = checkNginx();
+// BEHIND_NGINX=true в .env: сайт работает только на внутреннем порту, порты 80/443 занимает Nginx
+const nginxInUse = process.env.BEHIND_NGINX === 'true' || checkNginx();
 
 if (hasSSLCertificates && sslOptions && !nginxInUse) {
     // Если Nginx НЕ используется - запускаем HTTPS напрямую
