@@ -44,24 +44,24 @@ document.addEventListener('DOMContentLoaded', async function() {
             
             shopsList.innerHTML = shops.map(shop => `
                 <div class="shop-card">
-                    <div class="shop-name">${shop.name}</div>
+                    <div class="shop-name">${escapeHtml(shop.name)}</div>
                     <div class="shop-info">
-                        <strong>📍 Адрес:</strong> ${shop.address}
+                        <strong>📍 Адрес:</strong> ${escapeHtml(shop.address)}
                     </div>
                     <div class="shop-info">
-                        <strong>📞 Телефон:</strong> ${shop.phone}
+                        <strong>📞 Телефон:</strong> ${escapeHtml(shop.phone)}
                     </div>
                     <div class="shop-info">
-                        <strong>⏰ Часы работы:</strong> ${shop.hours}
+                        <strong>⏰ Часы работы:</strong> ${escapeHtml(shop.hours)}
                     </div>
                     ${shop.description ? `
                     <div class="shop-description">
-                        ${shop.description}
+                        ${escapeHtml(shop.description)}
                     </div>
                     ` : ''}
                     ${shop.products ? `
                     <div class="shop-products">
-                        <strong>Товары:</strong> ${shop.products}
+                        <strong>Товары:</strong> ${escapeHtml(shop.products)}
                     </div>
                     ` : ''}
                 </div>
@@ -108,21 +108,21 @@ document.addEventListener('DOMContentLoaded', async function() {
                 <div class="advice-card">
                     <div class="advice-header">
                         <div>
-                            <h4 class="advice-title">${advice.title}</h4>
+                            <h4 class="advice-title">${escapeHtml(advice.title)}</h4>
                             <div class="advice-meta">
-                                <span class="advice-author">👨‍⚕️ ${advice.author}</span>
-                                <span class="advice-date">📅 ${formatDate(advice.date)}</span>
-                                <span class="advice-category">🏷️ ${advice.category}</span>
+                                <span class="advice-author">👨‍⚕️ ${escapeHtml(advice.author)}</span>
+                                <span class="advice-date">📅 ${escapeHtml(formatDate(advice.date))}</span>
+                                <span class="advice-category">🏷️ ${escapeHtml(advice.category)}</span>
                             </div>
                         </div>
                     </div>
                     <div class="advice-content">
-                        <p>${advice.content}</p>
+                        <p>${escapeHtml(advice.content)}</p>
                         ${advice.tips && advice.tips.length > 0 ? `
                         <div class="advice-tips">
                             <strong>Полезные советы:</strong>
                             <ul>
-                                ${advice.tips.map(tip => `<li>${tip}</li>`).join('')}
+                                ${advice.tips.map(tip => `<li>${escapeHtml(tip)}</li>`).join('')}
                             </ul>
                         </div>
                         ` : ''}
@@ -132,7 +132,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         } catch (error) {
             console.error('Ошибка загрузки советов:', error);
             const errorMessage = error.message || 'Неизвестная ошибка';
-            adviceList.innerHTML = `<p style="text-align: center; color: #d32f2f; padding: 2rem;">Ошибка загрузки советов: ${errorMessage}. Попробуйте обновить страницу.</p>`;
+            adviceList.innerHTML = `<p style="text-align: center; color: #d32f2f; padding: 2rem;">Ошибка загрузки советов: ${escapeHtml(errorMessage)}. Попробуйте обновить страницу.</p>`;
         }
     }
 
@@ -171,22 +171,22 @@ document.addEventListener('DOMContentLoaded', async function() {
             newsList.innerHTML = sortedNews.map(news => `
                 <div class="news-card ${news.important ? 'important' : ''}">
                     <div class="news-header">
-                        <h4 class="news-title">${news.title}</h4>
+                        <h4 class="news-title">${escapeHtml(news.title)}</h4>
                         ${news.important ? '<span class="news-badge">Важно</span>' : ''}
                     </div>
                     <div class="news-meta">
-                        <span class="news-date">📅 ${formatDate(news.date)}</span>
-                        <span class="news-source">📢 ${news.source}</span>
+                        <span class="news-date">📅 ${escapeHtml(formatDate(news.date))}</span>
+                        <span class="news-source">📢 ${escapeHtml(news.source)}</span>
                     </div>
                     <div class="news-content">
-                        <p>${news.content}</p>
+                        <p>${escapeHtml(news.content)}</p>
                     </div>
                 </div>
             `).join('');
         } catch (error) {
             console.error('Ошибка загрузки новостей:', error);
             const errorMessage = error.message || 'Неизвестная ошибка';
-            newsList.innerHTML = `<p style="text-align: center; color: #d32f2f; padding: 2rem;">Ошибка загрузки новостей: ${errorMessage}. Попробуйте обновить страницу.</p>`;
+            newsList.innerHTML = `<p style="text-align: center; color: #d32f2f; padding: 2rem;">Ошибка загрузки новостей: ${escapeHtml(errorMessage)}. Попробуйте обновить страницу.</p>`;
         }
     }
 

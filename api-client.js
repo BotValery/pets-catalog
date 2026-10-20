@@ -1,3 +1,41 @@
+// ---------------------------------------------------------------------------
+// Защита от XSS: любые данные с сервера (имена, описания, контакты и т.д.)
+// перед вставкой в HTML через innerHTML нужно пропускать через escapeHtml().
+// ---------------------------------------------------------------------------
+function escapeHtml(value) {
+    if (value === null || value === undefined) return '';
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+// Безопасная ссылка для href: разрешены только http(s), mailto, tel и относительные адреса.
+// Адрес без схемы (например, "site.ru") дополняется https://
+function safeUrl(value) {
+    if (!value) return '#';
+    let url = String(value).trim();
+    if (!/^[a-z][a-z0-9+.-]*:/i.test(url) && !url.startsWith('/') && !url.startsWith('#')) {
+        url = 'https://' + url;
+    }
+    if (!/^(https?:|mailto:|tel:|\/|#)/i.test(url)) return '#';
+    return escapeHtml(url);
+}
+
+// Безопасный адрес для CSS url('...'): экранируем символы, которыми можно «выйти» из url()
+function cssUrl(value) {
+    if (!value) return '';
+    return String(value).replace(/['"()\\\s]/g, ch => '%' + ch.charCodeAt(0).toString(16).padStart(2, '0'));
+}
+
+if (typeof window !== 'undefined') {
+    window.escapeHtml = escapeHtml;
+    window.safeUrl = safeUrl;
+    window.cssUrl = cssUrl;
+}
+
 // API клиент для работы с сервером
 // Можно переопределить через window.API_BASE_URL или переменную окружения
 // В продакшене используйте относительный путь или установите window.API_BASE_URL

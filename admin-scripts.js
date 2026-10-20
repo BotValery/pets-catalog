@@ -185,7 +185,7 @@ function displayAdoptedPets(adoptedPets) {
         const sterilizationStatusText = sterilizationStatuses[currentSterilizationStatus] || 'Не указано';
         
         // Определяем изображение
-        let imageHtml = `<div class="adopted-pet-image">${pet.icon || (pet.type === 'dog' ? '🐕' : '🐱')}</div>`;
+        let imageHtml = `<div class="adopted-pet-image">${escapeHtml(pet.icon || (pet.type === 'dog' ? '🐕' : '🐱'))}</div>`;
         
         // Обрабатываем фотографии (могут быть массивом или строкой JSON)
         let photos = [];
@@ -203,7 +203,7 @@ function displayAdoptedPets(adoptedPets) {
         }
         
         if (photos.length > 0) {
-            imageHtml = `<img src="${photos[0]}" alt="${pet.name}" class="adopted-pet-image">`;
+            imageHtml = `<img src="${escapeHtml(photos[0])}" alt="${escapeHtml(pet.name)}" class="adopted-pet-image">`;
         }
         
         // Форматируем дату
@@ -233,7 +233,7 @@ function displayAdoptedPets(adoptedPets) {
                 badgeIcon = '⏳';
             }
             sterilizationBadge = `<div style="margin-top: 0.5rem; padding: 0.5rem; background: ${badgeColor}15; border-left: 3px solid ${badgeColor}; border-radius: 4px;">
-                <strong style="color: ${badgeColor};">${badgeIcon} Статус стерилизации:</strong> <span style="color: #333;">${sterilizationStatusText}</span>
+                <strong style="color: ${badgeColor};">${badgeIcon} Статус стерилизации:</strong> <span style="color: #333;">${escapeHtml(sterilizationStatusText)}</span>
             </div>`;
         }
         
@@ -241,18 +241,18 @@ function displayAdoptedPets(adoptedPets) {
             <div class="adopted-pet-card">
                 ${imageHtml}
                 <div class="adopted-pet-info">
-                    <h3>${pet.name}</h3>
+                    <h3>${escapeHtml(pet.name)}</h3>
                     <div class="adopted-pet-details">
-                        <div class="adopted-pet-detail"><strong>Тип:</strong> ${typeText}</div>
-                        <div class="adopted-pet-detail"><strong>Возраст:</strong> ${ageText}</div>
-                        <div class="adopted-pet-detail"><strong>Пол:</strong> ${genderText}</div>
-                        <div class="adopted-pet-detail"><strong>Размер:</strong> ${sizeText}</div>
-                        ${pet.breed ? `<div class="adopted-pet-detail"><strong>Порода:</strong> ${pet.breed}</div>` : ''}
-                        ${pet.color ? `<div class="adopted-pet-detail"><strong>Цвет:</strong> ${pet.color}</div>` : ''}
-                        ${pet.shelterName ? `<div class="adopted-pet-detail"><strong>Передержка:</strong> ${pet.shelterName}</div>` : ''}
+                        <div class="adopted-pet-detail"><strong>Тип:</strong> ${escapeHtml(typeText)}</div>
+                        <div class="adopted-pet-detail"><strong>Возраст:</strong> ${escapeHtml(ageText)}</div>
+                        <div class="adopted-pet-detail"><strong>Пол:</strong> ${escapeHtml(genderText)}</div>
+                        <div class="adopted-pet-detail"><strong>Размер:</strong> ${escapeHtml(sizeText)}</div>
+                        ${pet.breed ? `<div class="adopted-pet-detail"><strong>Порода:</strong> ${escapeHtml(pet.breed)}</div>` : ''}
+                        ${pet.color ? `<div class="adopted-pet-detail"><strong>Цвет:</strong> ${escapeHtml(pet.color)}</div>` : ''}
+                        ${pet.shelterName ? `<div class="adopted-pet-detail"><strong>Передержка:</strong> ${escapeHtml(pet.shelterName)}</div>` : ''}
                     </div>
-                    ${pet.description ? `<p style="margin-top: 0.5rem; color: #666;">${pet.description}</p>` : ''}
-                    <div class="adopted-date">✅ Забран: ${adoptedDateText}</div>
+                    ${pet.description ? `<p style="margin-top: 0.5rem; color: #666;">${escapeHtml(pet.description)}</p>` : ''}
+                    <div class="adopted-date">✅ Забран: ${escapeHtml(adoptedDateText)}</div>
                     ${sterilizationBadge}
                 </div>
             </div>
@@ -305,7 +305,7 @@ function displayVolunteers(volunteers) {
         };
         
         const activitiesHtml = volunteer.activities && volunteer.activities.length > 0
-            ? volunteer.activities.map(act => `<span class="activity-badge">${activitiesMap[act] || act}</span>`).join('')
+            ? volunteer.activities.map(act => `<span class="activity-badge">${escapeHtml(activitiesMap[act] || act)}</span>`).join('')
             : '<span class="activity-badge">Не указано</span>';
         
         const dateText = volunteer.date 
@@ -320,13 +320,13 @@ function displayVolunteers(volunteers) {
         
         html += `
             <div class="volunteer-card">
-                <h4>${volunteer.name}</h4>
+                <h4>${escapeHtml(volunteer.name)}</h4>
                 <div class="volunteer-info">
-                    <p><strong>Возраст:</strong> ${volunteer.age || 'Не указан'}</p>
-                    <p><strong>Телефон:</strong> ${volunteer.phone || 'Не указан'}</p>
-                    <p><strong>Email:</strong> ${volunteer.email || 'Не указан'}</p>
-                    <p><strong>Город:</strong> ${volunteer.city || 'Не указан'}</p>
-                    <p><strong>Дата заявки:</strong> ${dateText}</p>
+                    <p><strong>Возраст:</strong> ${escapeHtml(volunteer.age || 'Не указан')}</p>
+                    <p><strong>Телефон:</strong> ${escapeHtml(volunteer.phone || 'Не указан')}</p>
+                    <p><strong>Email:</strong> ${escapeHtml(volunteer.email || 'Не указан')}</p>
+                    <p><strong>Город:</strong> ${escapeHtml(volunteer.city || 'Не указан')}</p>
+                    <p><strong>Дата заявки:</strong> ${escapeHtml(dateText)}</p>
                 </div>
                 <div>
                     <strong>Виды деятельности:</strong>
@@ -334,8 +334,8 @@ function displayVolunteers(volunteers) {
                         ${activitiesHtml}
                     </div>
                 </div>
-                ${volunteer.experience ? `<p style="margin-top: 1rem;"><strong>Опыт:</strong> ${volunteer.experience}</p>` : ''}
-                ${volunteer.availability ? `<p style="margin-top: 0.5rem;"><strong>Доступность:</strong> ${volunteer.availability}</p>` : ''}
+                ${volunteer.experience ? `<p style="margin-top: 1rem;"><strong>Опыт:</strong> ${escapeHtml(volunteer.experience)}</p>` : ''}
+                ${volunteer.availability ? `<p style="margin-top: 0.5rem;"><strong>Доступность:</strong> ${escapeHtml(volunteer.availability)}</p>` : ''}
             </div>
         `;
     });
@@ -406,16 +406,16 @@ function displayAllApplications(applications) {
         
         html += `
             <div class="application-card">
-                <h4>${app.pet ? app.pet.name : 'Животное не найдено'}</h4>
-                <span class="application-status" style="background-color: ${statusColors[app.status] || '#999'}; color: white; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.85rem;">
-                    ${statusTexts[app.status] || app.status}
+                <h4>${escapeHtml(app.pet ? app.pet.name : 'Животное не найдено')}</h4>
+                <span class="application-status" style="background-color: ${escapeHtml(statusColors[app.status] || '#999')}; color: white; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.85rem;">
+                    ${escapeHtml(statusTexts[app.status] || app.status)}
                 </span>
                 <div class="application-info">
-                    <p><strong>Пользователь:</strong> ${app.userName || 'Не указан'}</p>
-                    <p><strong>Телефон:</strong> ${app.userPhone || 'Не указан'}</p>
-                    <p><strong>Email:</strong> ${app.userEmail || 'Не указан'}</p>
-                    <p><strong>Дата заявки:</strong> ${dateText}</p>
-                    ${app.pet ? `<p><strong>Передержка:</strong> ${app.pet.shelterName || 'Не указана'}</p>` : ''}
+                    <p><strong>Пользователь:</strong> ${escapeHtml(app.userName || 'Не указан')}</p>
+                    <p><strong>Телефон:</strong> ${escapeHtml(app.userPhone || 'Не указан')}</p>
+                    <p><strong>Email:</strong> ${escapeHtml(app.userEmail || 'Не указан')}</p>
+                    <p><strong>Дата заявки:</strong> ${escapeHtml(dateText)}</p>
+                    ${app.pet ? `<p><strong>Передержка:</strong> ${escapeHtml(app.pet.shelterName || 'Не указана')}</p>` : ''}
                 </div>
             </div>
         `;
@@ -544,18 +544,18 @@ function displayUsersAndShelters(users, shelters, filter) {
                 <div class="user-card">
                     <div class="user-card-header">
                         <h4>
-                            ${data.name || 'Имя не указано'}
+                            ${escapeHtml(data.name || 'Имя не указано')}
                             <span class="user-type-badge">Пользователь</span>
                         </h4>
-                        <button class="btn-secondary" onclick="deleteUser(${data.id})" style="padding: 0.5rem 1rem; font-size: 0.9rem; background: #d32f2f; color: white; border: none; cursor: pointer; border-radius: 4px; white-space: nowrap;" title="Удалить пользователя">🗑️ Удалить</button>
+                        <button class="btn-secondary" onclick="deleteUser(${escapeHtml(data.id)})" style="padding: 0.5rem 1rem; font-size: 0.9rem; background: #d32f2f; color: white; border: none; cursor: pointer; border-radius: 4px; white-space: nowrap;" title="Удалить пользователя">🗑️ Удалить</button>
                     </div>
                     <div class="user-info">
-                        <p><strong>Email:</strong> ${data.email || 'Не указан'}</p>
-                        <p><strong>Телефон:</strong> ${data.phone || 'Не указан'}</p>
-                        ${data.city ? `<p><strong>Город:</strong> ${data.city}</p>` : ''}
-                        ${data.address ? `<p><strong>Адрес:</strong> ${data.address}</p>` : ''}
+                        <p><strong>Email:</strong> ${escapeHtml(data.email || 'Не указан')}</p>
+                        <p><strong>Телефон:</strong> ${escapeHtml(data.phone || 'Не указан')}</p>
+                        ${data.city ? `<p><strong>Город:</strong> ${escapeHtml(data.city)}</p>` : ''}
+                        ${data.address ? `<p><strong>Адрес:</strong> ${escapeHtml(data.address)}</p>` : ''}
                     </div>
-                    <div class="registration-date">📅 Зарегистрирован: ${regDateText}</div>
+                    <div class="registration-date">📅 Зарегистрирован: ${escapeHtml(regDateText)}</div>
                 </div>
             `;
         } else {
@@ -564,21 +564,21 @@ function displayUsersAndShelters(users, shelters, filter) {
                 <div class="shelter-card">
                     <div class="shelter-card-header">
                         <h4>
-                            ${data.shelterName || 'Название не указано'}
+                            ${escapeHtml(data.shelterName || 'Название не указано')}
                             <span class="shelter-type-badge">Передержка</span>
                         </h4>
-                        <button class="btn-secondary" onclick="deleteShelter(${data.id})" style="padding: 0.5rem 1rem; font-size: 0.9rem; background: #d32f2f; color: white; border: none; cursor: pointer; border-radius: 4px; white-space: nowrap;" title="Удалить передержку">🗑️ Удалить</button>
+                        <button class="btn-secondary" onclick="deleteShelter(${escapeHtml(data.id)})" style="padding: 0.5rem 1rem; font-size: 0.9rem; background: #d32f2f; color: white; border: none; cursor: pointer; border-radius: 4px; white-space: nowrap;" title="Удалить передержку">🗑️ Удалить</button>
                     </div>
                     <div class="shelter-info">
-                        <p><strong>Email:</strong> ${data.email || 'Не указан'}</p>
-                        <p><strong>Телефон:</strong> ${data.phone || 'Не указан'}</p>
-                        ${data.authorizedPerson ? `<p><strong>Уполномоченное лицо:</strong> ${data.authorizedPerson}</p>` : ''}
-                        ${data.address ? `<p><strong>Адрес:</strong> ${data.address}</p>` : ''}
-                        ${data.viber ? `<p><strong>Viber:</strong> ${data.viber}</p>` : ''}
-                        ${data.telegram ? `<p><strong>Telegram:</strong> ${data.telegram}</p>` : ''}
-                        ${data.website ? `<p><strong>Сайт:</strong> <a href="${data.website}" target="_blank" style="color: #667eea;">${data.website}</a></p>` : ''}
+                        <p><strong>Email:</strong> ${escapeHtml(data.email || 'Не указан')}</p>
+                        <p><strong>Телефон:</strong> ${escapeHtml(data.phone || 'Не указан')}</p>
+                        ${data.authorizedPerson ? `<p><strong>Уполномоченное лицо:</strong> ${escapeHtml(data.authorizedPerson)}</p>` : ''}
+                        ${data.address ? `<p><strong>Адрес:</strong> ${escapeHtml(data.address)}</p>` : ''}
+                        ${data.viber ? `<p><strong>Viber:</strong> ${escapeHtml(data.viber)}</p>` : ''}
+                        ${data.telegram ? `<p><strong>Telegram:</strong> ${escapeHtml(data.telegram)}</p>` : ''}
+                        ${data.website ? `<p><strong>Сайт:</strong> <a href="${safeUrl(data.website)}" target="_blank" style="color: #667eea;">${escapeHtml(data.website)}</a></p>` : ''}
                     </div>
-                    <div class="registration-date">📅 Зарегистрирован: ${regDateText}</div>
+                    <div class="registration-date">📅 Зарегистрирован: ${escapeHtml(regDateText)}</div>
                 </div>
             `;
         }
@@ -630,19 +630,19 @@ function displayNews(news) {
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
                     <div style="flex: 1;">
                         <h4 style="margin: 0 0 0.5rem 0;">
-                            ${item.title}
+                            ${escapeHtml(item.title)}
                             ${item.important ? '<span style="background: #d32f2f; color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem; margin-left: 0.5rem;">Важно</span>' : ''}
                         </h4>
                         <div style="color: #666; font-size: 0.9rem; margin-bottom: 0.5rem;">
-                            📅 ${dateText} | 📢 ${item.source}
+                            📅 ${escapeHtml(dateText)} | 📢 ${escapeHtml(item.source)}
                         </div>
                     </div>
                     <div style="display: flex; gap: 0.5rem;">
-                        <button class="btn-secondary" onclick="editNews(${item.id})" style="padding: 0.5rem 1rem; font-size: 0.9rem;">✏️ Редактировать</button>
-                        <button class="btn-secondary" onclick="deleteNews(${item.id})" style="padding: 0.5rem 1rem; font-size: 0.9rem; background: #d32f2f; color: white; border: none;">🗑️ Удалить</button>
+                        <button class="btn-secondary" onclick="editNews(${escapeHtml(item.id)})" style="padding: 0.5rem 1rem; font-size: 0.9rem;">✏️ Редактировать</button>
+                        <button class="btn-secondary" onclick="deleteNews(${escapeHtml(item.id)})" style="padding: 0.5rem 1rem; font-size: 0.9rem; background: #d32f2f; color: white; border: none;">🗑️ Удалить</button>
                     </div>
                 </div>
-                <p style="margin: 0; color: #666; line-height: 1.6;">${item.content}</p>
+                <p style="margin: 0; color: #666; line-height: 1.6;">${escapeHtml(item.content)}</p>
             </div>
         `;
     }).join('');
@@ -1009,19 +1009,19 @@ async function loadShops() {
         shopsList.innerHTML = shops.map(shop => `
             <div class="volunteer-card" style="position: relative;">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
-                    <h4>${shop.name}</h4>
+                    <h4>${escapeHtml(shop.name)}</h4>
                     <div style="display: flex; gap: 0.5rem;">
-                        <button class="btn-edit-pet" onclick="editShop(${shop.id})" title="Редактировать">✏️</button>
-                        <button class="btn-delete-pet" onclick="deleteShop(${shop.id})" title="Удалить">🗑️</button>
+                        <button class="btn-edit-pet" onclick="editShop(${escapeHtml(shop.id)})" title="Редактировать">✏️</button>
+                        <button class="btn-delete-pet" onclick="deleteShop(${escapeHtml(shop.id)})" title="Удалить">🗑️</button>
                     </div>
                 </div>
                 <div class="volunteer-info">
-                    <p><strong>📍 Адрес:</strong> ${shop.address}</p>
-                    <p><strong>📞 Телефон:</strong> ${shop.phone}</p>
-                    <p><strong>⏰ Часы работы:</strong> ${shop.hours}</p>
+                    <p><strong>📍 Адрес:</strong> ${escapeHtml(shop.address)}</p>
+                    <p><strong>📞 Телефон:</strong> ${escapeHtml(shop.phone)}</p>
+                    <p><strong>⏰ Часы работы:</strong> ${escapeHtml(shop.hours)}</p>
                 </div>
-                ${shop.description ? `<p style="margin-top: 0.5rem;"><strong>Описание:</strong> ${shop.description}</p>` : ''}
-                ${shop.products ? `<p style="margin-top: 0.5rem;"><strong>Товары:</strong> ${shop.products}</p>` : ''}
+                ${shop.description ? `<p style="margin-top: 0.5rem;"><strong>Описание:</strong> ${escapeHtml(shop.description)}</p>` : ''}
+                ${shop.products ? `<p style="margin-top: 0.5rem;"><strong>Товары:</strong> ${escapeHtml(shop.products)}</p>` : ''}
             </div>
         `).join('');
     } catch (error) {
@@ -1118,18 +1118,18 @@ async function loadClinics() {
         clinicsList.innerHTML = clinics.map(clinic => `
             <div class="volunteer-card" style="position: relative;">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
-                    <h4>${clinic.name}</h4>
+                    <h4>${escapeHtml(clinic.name)}</h4>
                     <div style="display: flex; gap: 0.5rem;">
-                        <button class="btn-edit-pet" onclick="editClinic(${clinic.id})" title="Редактировать">✏️</button>
-                        <button class="btn-delete-pet" onclick="deleteClinic(${clinic.id})" title="Удалить">🗑️</button>
+                        <button class="btn-edit-pet" onclick="editClinic(${escapeHtml(clinic.id)})" title="Редактировать">✏️</button>
+                        <button class="btn-delete-pet" onclick="deleteClinic(${escapeHtml(clinic.id)})" title="Удалить">🗑️</button>
                     </div>
                 </div>
                 <div class="volunteer-info">
-                    <p><strong>📍 Адрес:</strong> ${clinic.address}</p>
-                    <p><strong>📞 Телефон:</strong> ${clinic.phone}</p>
-                    <p><strong>⏰ Часы работы:</strong> ${clinic.hours}</p>
+                    <p><strong>📍 Адрес:</strong> ${escapeHtml(clinic.address)}</p>
+                    <p><strong>📞 Телефон:</strong> ${escapeHtml(clinic.phone)}</p>
+                    <p><strong>⏰ Часы работы:</strong> ${escapeHtml(clinic.hours)}</p>
                 </div>
-                ${clinic.services ? `<p style="margin-top: 0.5rem;"><strong>🩺 Услуги:</strong> ${clinic.services}</p>` : ''}
+                ${clinic.services ? `<p style="margin-top: 0.5rem;"><strong>🩺 Услуги:</strong> ${escapeHtml(clinic.services)}</p>` : ''}
             </div>
         `).join('');
         console.log('✅ Ветклиники отображены');
@@ -1457,22 +1457,22 @@ window.displayAdvice = function(advice) {
             <div class="application-card" style="position: relative;">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
                     <div style="flex: 1;">
-                        <h4 style="margin: 0 0 0.5rem 0;">${item.title}</h4>
+                        <h4 style="margin: 0 0 0.5rem 0;">${escapeHtml(item.title)}</h4>
                         <div style="color: #666; font-size: 0.9rem; margin-bottom: 0.5rem;">
-                            👨‍⚕️ ${item.author} | 📅 ${dateText} | 🏷️ ${item.category}
+                            👨‍⚕️ ${escapeHtml(item.author)} | 📅 ${escapeHtml(dateText)} | 🏷️ ${escapeHtml(item.category)}
                         </div>
                     </div>
                     <div style="display: flex; gap: 0.5rem;">
-                        <button class="btn-secondary" onclick="editAdvice(${item.id})" style="padding: 0.5rem 1rem; font-size: 0.9rem;">✏️ Редактировать</button>
-                        <button class="btn-secondary" onclick="deleteAdvice(${item.id})" style="padding: 0.5rem 1rem; font-size: 0.9rem; background: #d32f2f; color: white; border: none;">🗑️ Удалить</button>
+                        <button class="btn-secondary" onclick="editAdvice(${escapeHtml(item.id)})" style="padding: 0.5rem 1rem; font-size: 0.9rem;">✏️ Редактировать</button>
+                        <button class="btn-secondary" onclick="deleteAdvice(${escapeHtml(item.id)})" style="padding: 0.5rem 1rem; font-size: 0.9rem; background: #d32f2f; color: white; border: none;">🗑️ Удалить</button>
                     </div>
                 </div>
-                <p style="color: #666; margin-bottom: 1rem;">${item.content}</p>
+                <p style="color: #666; margin-bottom: 1rem;">${escapeHtml(item.content)}</p>
                 ${item.tips && item.tips.length > 0 ? `
                 <div style="background: #f9f9f9; padding: 1rem; border-radius: 8px; margin-top: 1rem;">
                     <strong style="color: #667eea; display: block; margin-bottom: 0.5rem;">Полезные советы:</strong>
                     <ul style="margin: 0; padding-left: 1.5rem;">
-                        ${item.tips.map(tip => `<li style="color: #666; margin-bottom: 0.25rem;">${tip}</li>`).join('')}
+                        ${item.tips.map(tip => `<li style="color: #666; margin-bottom: 0.25rem;">${escapeHtml(tip)}</li>`).join('')}
                     </ul>
                 </div>
                 ` : ''}

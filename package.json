@@ -16,6 +16,7 @@
         "add-shops": "node scripts/add-shops-table.js",
         "add-clinics": "node scripts/add-clinics-table.js",
         "migrate-users": "node scripts/migrate-users-to-telegram.js",
+        "set-admin-password": "node scripts/set-admin-password.js",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
   "keywords": [

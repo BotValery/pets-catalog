@@ -5,6 +5,17 @@ const { authenticateToken, requireShelter } = require('../middleware/auth');
 
 const router = express.Router();
 
+// Безопасный разбор JSON-массива (битые данные в БД не должны ронять запрос)
+function parseJsonArray(value) {
+    if (!value) return [];
+    try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+        return [];
+    }
+}
+
 // Логирование для отладки
 console.log('✅ Роуты pets загружены');
 
@@ -96,32 +107,42 @@ router.get('/', [
         // Если параметр all=true, возвращаем всех питомцев (включая забранных)
         // Иначе возвращаем только непристроенных
         const includeAdopted = req.query.all === 'true';
-        let sql = includeAdopted ? 'SELECT * FROM pets' : 'SELECT * FROM pets WHERE adopted = 0';
+        const conditions = [];
         const params = [];
+
+        if (!includeAdopted) {
+            conditions.push('adopted = 0');
+        }
 
         // Фильтры
         if (req.query.type && req.query.type !== 'all') {
-            sql += includeAdopted ? ' WHERE type = ?' : ' AND type = ?';
+            conditions.push('type = ?');
             params.push(req.query.type);
         }
         if (req.query.ageCategory && req.query.ageCategory !== 'all') {
-            sql += ' AND ageCategory = ?';
+            conditions.push('ageCategory = ?');
             params.push(req.query.ageCategory);
         }
         if (req.query.gender && req.query.gender !== 'all') {
-            sql += ' AND gender = ?';
+            conditions.push('gender = ?');
             params.push(req.query.gender);
         }
         if (req.query.size && req.query.size !== 'all') {
-            sql += ' AND size = ?';
+            conditions.push('size = ?');
             params.push(req.query.size);
         }
 
+        let sql = 'SELECT * FROM pets';
+        if (conditions.length > 0) {
+            sql += ' WHERE ' + conditions.join(' AND ');
+        }
         sql += ' ORDER BY createdAt DESC';
-        
-        // Ограничиваем количество записей для оптимизации (можно увеличить при необходимости)
-        const limit = parseInt(req.query.limit) || 1000;
-        sql += ` LIMIT ${limit}`;
+
+        // Ограничиваем количество записей (от 1 до 1000)
+        let limit = parseInt(req.query.limit, 10);
+        if (!Number.isFinite(limit) || limit < 1 || limit > 1000) limit = 1000;
+        sql += ' LIMIT ?';
+        params.push(limit);
 
         const pets = await db.all(sql, params);
         
@@ -258,7 +279,7 @@ router.get('/:id', async (req, res) => {
         }
 
         // Парсим photos из JSON строки
-        pet.photos = pet.photos ? JSON.parse(pet.photos) : [];
+        pet.photos = parseJsonArray(pet.photos);
 
         res.json({ pet });
     } catch (error) {
@@ -303,7 +324,7 @@ router.post('/', authenticateToken, requireShelter, [
         // Определяем возрастную категорию если не указана
         let finalAgeCategory = ageCategory;
         if (!finalAgeCategory) {
-            const totalAge = ageYears + (ageMonths / 12);
+            const totalAge = (Number(ageYears) || 0) + (Number(ageMonths) || 0) / 12;
             if (totalAge < 1) {
                 finalAgeCategory = 'young';
             } else if (totalAge < 7) {
@@ -345,7 +366,7 @@ router.post('/', authenticateToken, requireShelter, [
                 name,
                 type,
                 breed || null,
-                age || (ageYears + ageMonths / 12),
+                age || ((Number(ageYears) || 0) + (Number(ageMonths) || 0) / 12),
                 ageYears || 0,
                 ageMonths || 0,
                 finalAgeCategory,
@@ -567,6 +588,12 @@ router.patch('/:id/adopt', authenticateToken, async (req, res) => {
         
         if (!pet) {
             return res.status(404).json({ error: 'Питомец не найден' });
+        }
+
+        // Отмечать питомца может только его передержка или админ
+        const isOwnerShelter = req.user.type === 'shelter' && Number(pet.shelterId) === Number(req.user.id);
+        if (!isOwnerShelter && req.user.type !== 'admin') {
+            return res.status(403).json({ error: 'Нет доступа к этому питомцу' });
         }
 
         await db.run(

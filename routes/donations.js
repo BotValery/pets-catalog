@@ -2,6 +2,8 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const db = require('../config/database');
 const axios = require('axios');
+const crypto = require('crypto');
+const { authenticateToken, requireAdmin } = require('../middleware/auth');
 require('dotenv').config();
 
 const router = express.Router();
@@ -125,6 +127,15 @@ async function ensureDonationsTable() {
                 )
             `);
             console.log('✅ Таблица donations создана автоматически');
+        } else {
+            // Старая версия таблицы (из init-db.js) — добавляем недостающие колонки.
+            // В SQLite нельзя добавить колонку с DEFAULT CURRENT_TIMESTAMP, поэтому даты заполняем при вставке.
+            await db.ensureColumn('donations', 'anonymous', 'BOOLEAN DEFAULT 0');
+            await db.ensureColumn('donations', 'paymentId', 'TEXT');
+            await db.ensureColumn('donations', 'paymentStatus', "TEXT DEFAULT 'pending'");
+            await db.ensureColumn('donations', 'vtbOrderId', 'TEXT');
+            await db.ensureColumn('donations', 'createdAt', 'DATETIME');
+            await db.ensureColumn('donations', 'updatedAt', 'DATETIME');
         }
     } catch (error) {
         console.error('❌ Ошибка создания таблицы donations:', error);
@@ -133,10 +144,10 @@ async function ensureDonationsTable() {
 }
 
 // Получить все донаты (только для админа)
-router.get('/', async (req, res) => {
+router.get('/', authenticateToken, requireAdmin, async (req, res) => {
     try {
         await ensureDonationsTable();
-        const donations = await db.all('SELECT * FROM donations ORDER BY createdAt DESC');
+        const donations = await db.all('SELECT * FROM donations ORDER BY COALESCE(createdAt, date) DESC');
         res.json({ donations });
     } catch (error) {
         console.error('Ошибка получения донатов:', error);
@@ -186,8 +197,26 @@ router.post('/create-payment', [
             });
         }
 
-        // Генерируем уникальный ID для заказа (используем timestamp + случайное число)
-        const orderId = `donation_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        // Генерируем уникальный ID для заказа
+        const orderId = `donation_${Date.now()}_${crypto.randomBytes(6).toString('hex')}`;
+
+        // Сохраняем пожертвование в БД со статусом pending ДО обращения в банк
+        await ensureDonationsTable();
+        const isAnonymous = anonymous === true || anonymous === 'true';
+        const insertResult = await db.run(
+            `INSERT INTO donations (amount, donorName, donorEmail, donorPhone, message, anonymous, paymentId, paymentStatus, createdAt, updatedAt)
+             VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+            [
+                Number(amount),
+                isAnonymous ? null : (donorName || null),
+                isAnonymous ? null : (donorEmail || null),
+                isAnonymous ? null : (donorPhone || null),
+                message || null,
+                isAnonymous ? 1 : 0,
+                orderId
+            ]
+        );
+        const donationId = insertResult.id;
 
         // Создаем платеж в ВТБ
         // ⚠️ ВАЖНО: Адаптируйте структуру paymentData под формат из документации ВТБ!
@@ -211,9 +240,9 @@ router.post('/create-payment', [
             const paymentData = {
                 amount: Math.round(amount * 100), // сумма в копейках
                 orderId: orderId, // уникальный идентификатор заказа
-                description: `Пожертвование в фонд "Друзья на лапки"`,
-                returnUrl: `${VTB_SUCCESS_URL}?orderId=${orderId}`,
-                failUrl: `${VTB_FAIL_URL}?orderId=${orderId}`
+                description: `Пожертвование в фонд "Друзья на лапках"`,
+                returnUrl: `${VTB_SUCCESS_URL}?donationId=${donationId}`,
+                failUrl: `${VTB_FAIL_URL}?donationId=${donationId}`
                 // customer - опциональное поле, можно добавить если нужно
             };
 
@@ -255,8 +284,6 @@ router.post('/create-payment', [
                 hasMerchantAuth: !!headers['Merchant-Authorization'],
                 authLength: headers.Authorization?.length,
                 merchantAuthLength: headers['Merchant-Authorization']?.length,
-                clientIdPrefix: VTB_CLIENT_ID?.substring(0, 20) + '...', // Первые 20 символов для проверки
-                merchantAuthPrefix: VTB_MERCHANT_AUTH?.substring(0, 20) + '...' // Первые 20 символов для проверки
             });
 
             // Endpoint для создания платежа согласно документации ВТБ
@@ -315,7 +342,6 @@ router.post('/create-payment', [
                     status: vtbResponse.status,
                     statusText: vtbResponse.statusText,
                     data: errorData,
-                    headers: vtbResponse.headers,
                     errorMessage: errorMessage
                 });
                 
@@ -364,14 +390,25 @@ router.post('/create-payment', [
             console.log('🔗 URL для редиректа:', confirmationUrl);
             console.log('🆔 ID заказа ВТБ:', vtbOrderId);
 
+            await db.run(
+                'UPDATE donations SET vtbOrderId = ?, updatedAt = CURRENT_TIMESTAMP WHERE id = ?',
+                [String(vtbOrderId), donationId]
+            );
+
             res.json({
                 success: true,
+                donationId: donationId,
                 paymentId: vtbOrderId,
                 confirmationUrl: confirmationUrl,
                 orderId: orderId
             });
 
         } catch (vtbError) {
+            await db.run(
+                "UPDATE donations SET paymentStatus = 'failed', updatedAt = CURRENT_TIMESTAMP WHERE id = ?",
+                [donationId]
+            ).catch(() => {});
+
             // Проверяем, это таймаут или другая ошибка
             const isTimeout = vtbError.code === 'ECONNABORTED' || vtbError.message.includes('timeout');
             const isNetworkError = vtbError.code === 'ECONNREFUSED' || vtbError.code === 'ENOTFOUND';
@@ -386,8 +423,7 @@ router.post('/create-payment', [
                 response: {
                     status: vtbError.response?.status,
                     statusText: vtbError.response?.statusText,
-                    data: vtbError.response?.data,
-                    headers: vtbError.response?.headers
+                    data: vtbError.response?.data
                 },
                 request: {
                     url: vtbError.config?.url,
@@ -439,7 +475,6 @@ router.post('/create-payment', [
         console.error('❌ Критическая ошибка создания доната:', {
             message: error.message,
             stack: error.stack,
-            body: req.body,
             errorName: error.name,
             errorCode: error.code
         });
@@ -447,7 +482,7 @@ router.post('/create-payment', [
         // Отправляем более детальную ошибку в режиме разработки
         const errorResponse = {
             error: 'Ошибка сервера',
-            message: error.message || 'Внутренняя ошибка сервера'
+            message: 'Внутренняя ошибка сервера'
         };
         
         // В режиме разработки добавляем детали
@@ -464,67 +499,55 @@ router.post('/create-payment', [
 });
 
 // Webhook от ВТБ для уведомлений о статусе платежа
-// ⚠️ ВАЖНО: Адаптируйте обработку webhook под формат из документации ВТБ!
-router.post('/webhook', express.json(), async (req, res) => {
-    try {
-        // TODO: Добавьте проверку подписи согласно PDF инструкции ВТБ
-        // ВТБ может отправлять подписанный запрос, нужно проверить подпись
-        const signature = req.headers['x-vtb-signature'] || 
-                         req.headers['x-signature'] || 
-                         req.headers['signature'];
-        
-        // Пример проверки подписи (адаптируйте под алгоритм из документации):
-        // if (signature) {
-        //     const expectedSignature = createSignature(req.body, VTB_SECRET_KEY);
-        //     if (signature !== expectedSignature) {
-        //         console.error('❌ Неверная подпись webhook');
-        //         return res.status(401).json({ error: 'Invalid signature' });
-        //     }
-        // }
-        
-        // TODO: Обновите обработку webhook согласно PDF инструкции ВТБ
-        // Типичные форматы уведомлений:
-        // Вариант 1: { type: "payment.succeeded", payment: { id, order_id, status } }
-        // Вариант 2: { payment_id, order_id, status, amount }
-        // Вариант 3: Другой формат из документации
-        
-        const event = req.body;
-        console.log('📥 Получен webhook от ВТБ:', JSON.stringify(event, null, 2));
-        
-        // Определяем формат уведомления и извлекаем данные
-        let paymentId, donationId, status;
-        
-        // Вариант 1: Формат с типом события
-        if (event.type === 'payment.succeeded' || event.type === 'payment_succeeded') {
-            paymentId = event.payment?.id || event.object?.id || event.payment_id;
-            donationId = event.payment?.order_id || event.object?.order_id || event.order_id || event.payment?.metadata?.donationId;
-            status = 'succeeded';
-        } else if (event.type === 'payment.canceled' || event.type === 'payment_canceled' || event.type === 'payment_failed') {
-            paymentId = event.payment?.id || event.object?.id || event.payment_id;
-            donationId = event.payment?.order_id || event.object?.order_id || event.order_id || event.payment?.metadata?.donationId;
-            status = 'canceled';
-        }
-        // Вариант 2: Прямой формат с полями
-        else if (event.status || event.payment_status) {
-            paymentId = event.payment_id || event.id;
-            donationId = event.order_id || event.donation_id;
-            status = (event.status === 'success' || event.status === 'succeeded' || event.payment_status === 'success') ? 'succeeded' : 
-                     (event.status === 'failed' || event.status === 'canceled' || event.payment_status === 'failed') ? 'canceled' : 
-                     'pending';
-        }
-        
-        // Обновляем статус доната
-        if (donationId && status) {
-            await db.run(`
-                UPDATE donations 
-                SET paymentStatus = ?, updatedAt = CURRENT_TIMESTAMP
-                WHERE id = ? ${paymentId ? 'AND (paymentId = ? OR vtbOrderId = ?)' : ''}
-            `, paymentId ? [status, donationId, paymentId, paymentId] : [status, donationId]);
+// Защита: адрес webhook должен содержать секрет из .env (VTB_WEBHOOK_SECRET):
+//   https://anodruzya.ru/api/donations/webhook?secret=<VTB_WEBHOOK_SECRET>
+// Без секрета webhook отключён — иначе кто угодно мог бы «оплатить» пожертвование.
+// TODO: когда будет документация ВТБ по подписи уведомлений — добавить проверку подписи.
+const VTB_WEBHOOK_SECRET = process.env.VTB_WEBHOOK_SECRET;
 
-            console.log(`✅ Статус доната обновлен: donationId=${donationId}, status=${status}, paymentId=${paymentId || 'N/A'}`);
-        } else {
-            console.warn('⚠️ Не удалось извлечь данные из webhook:', event);
+function safeEqual(a, b) {
+    const bufA = Buffer.from(String(a || ''));
+    const bufB = Buffer.from(String(b || ''));
+    return bufA.length === bufB.length && crypto.timingSafeEqual(bufA, bufB);
+}
+
+router.post('/webhook', async (req, res) => {
+    try {
+        if (!VTB_WEBHOOK_SECRET) {
+            console.warn('⚠️ Webhook ВТБ отклонён: VTB_WEBHOOK_SECRET не задан в .env');
+            return res.status(503).json({ error: 'Webhook не настроен' });
         }
+        const providedSecret = req.query.secret || req.headers['x-webhook-secret'];
+        if (!safeEqual(providedSecret, VTB_WEBHOOK_SECRET)) {
+            console.warn('⚠️ Webhook ВТБ отклонён: неверный секрет');
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        const event = req.body || {};
+        console.log('📥 Получен webhook от ВТБ:', JSON.stringify(event));
+
+        // Наш orderId (donation_...) и/или id заказа на стороне ВТБ
+        const orderId = event.orderId || event.order_id || event.payment?.order_id || event.object?.order_id;
+        const rawStatus = String(
+            event.orderStatus || event.status || event.payment_status || event.type || ''
+        ).toLowerCase();
+
+        let status = null;
+        if (/(succeed|success|paid|deposited|completed|approved)/.test(rawStatus)) status = 'succeeded';
+        else if (/(cancel|fail|declin|reject|expired|reversed|refund)/.test(rawStatus)) status = 'canceled';
+
+        if (!orderId || !status) {
+            console.warn('⚠️ Не удалось извлечь данные из webhook');
+            return res.status(200).json({ received: true });
+        }
+
+        await ensureDonationsTable();
+        const result = await db.run(
+            `UPDATE donations SET paymentStatus = ?, updatedAt = CURRENT_TIMESTAMP
+             WHERE paymentId = ? OR vtbOrderId = ?`,
+            [status, String(orderId), String(orderId)]
+        );
+        console.log(`✅ Webhook: orderId=${orderId}, status=${status}, обновлено записей: ${result.changes}`);
 
         res.status(200).json({ received: true });
     } catch (error) {

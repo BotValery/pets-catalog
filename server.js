@@ -1,3 +1,6 @@
+// Переменные окружения загружаем самыми первыми
+require('dotenv').config();
+
 // Полифилл для File API (требуется для undici в Node.js 18+)
 // Это исправляет ошибку "ReferenceError: File is not defined"
 if (typeof global.File === 'undefined' && typeof File === 'undefined') {
@@ -58,7 +61,7 @@ const fs = require('fs');
 const cron = require('node-cron');
 const db = require('./config/database');
 const { syncNews } = require('./scripts/news-parser');
-require('dotenv').config();
+const { publicFilesOnly, securityHeaders, rateLimit } = require('./middleware/security');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -91,13 +94,34 @@ db.connect().catch(err => {
 });
 
 // Middleware
-app.use(cors());
+// За Nginx берём реальный IP клиента из X-Forwarded-For (нужно для ограничения частоты запросов)
+app.set('trust proxy', 'loopback');
+app.disable('x-powered-by');
+app.use(securityHeaders);
+
+// CORS: фронтенд и API работают на одном домене, поэтому чужим сайтам доступ не нужен.
+// При необходимости разрешённые адреса можно перечислить в .env: CORS_ORIGINS=https://a.ru,https://b.ru
+const corsOrigins = (process.env.CORS_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
+if (corsOrigins.length > 0) {
+    app.use(cors({ origin: corsOrigins }));
+} else if (process.env.NODE_ENV !== 'production') {
+    app.use(cors());
+}
 // Увеличиваем лимит размера тела запроса для загрузки фотографий (50MB)
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Статические файлы (фронтенд)
-app.use(express.static(path.join(__dirname)));
+// ВАЖНО: наружу отдаются только файлы фронтенда из корня (html/css/js/картинки),
+// база данных, исходники сервера, ssl и .env недоступны
+app.use(publicFilesOnly);
+app.use(express.static(path.join(__dirname), { dotfiles: 'deny', index: 'index.html' }));
+
+// Ограничение попыток входа и регистрации (защита от подбора паролей)
+const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, message: 'Слишком много попыток. Попробуйте через 15 минут.' });
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', rateLimit({ windowMs: 60 * 60 * 1000, max: 10, message: 'Слишком много регистраций. Попробуйте позже.' }));
+app.use('/api/donations/create-payment', rateLimit({ windowMs: 15 * 60 * 1000, max: 20 }));
 
 // Импорт роутов
 const authRoutes = require('./routes/auth');
@@ -133,6 +157,23 @@ app.use('/api/donations', donationsRoutes);
 // Health check
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', message: 'Server is running' });
+});
+
+// Неизвестный API-адрес
+app.use('/api', (req, res) => {
+    res.status(404).json({ error: 'Не найдено' });
+});
+
+// Общий обработчик ошибок (например, битый JSON или слишком большой запрос)
+app.use((err, req, res, next) => {
+    if (err.type === 'entity.parse.failed') {
+        return res.status(400).json({ error: 'Некорректный JSON в запросе' });
+    }
+    if (err.type === 'entity.too.large') {
+        return res.status(413).json({ error: 'Слишком большой запрос' });
+    }
+    console.error('Необработанная ошибка:', err);
+    res.status(500).json({ error: 'Ошибка сервера' });
 });
 
 // Автоматическая синхронизация новостей

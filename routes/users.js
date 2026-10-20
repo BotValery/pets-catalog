@@ -1,13 +1,13 @@
 const express = require('express');
 const db = require('../config/database');
-const { authenticateToken, requireAdmin } = require('../middleware/auth');
+const { authenticateToken, requireAdmin, isSelf } = require('../middleware/auth');
 
 const router = express.Router();
 
 // Получить всех пользователей (только для админа)
 router.get('/', authenticateToken, requireAdmin, async (req, res) => {
     try {
-        const users = await db.all('SELECT id, name, email, phone, city, address, registeredAt FROM users ORDER BY registeredAt DESC');
+        const users = await db.all('SELECT id, name, telegram, phone, city, address, registeredAt FROM users ORDER BY registeredAt DESC');
         res.json({ users });
     } catch (error) {
         console.error('Ошибка получения пользователей:', error);
@@ -19,7 +19,7 @@ router.get('/', authenticateToken, requireAdmin, async (req, res) => {
 router.get('/:id', authenticateToken, async (req, res) => {
     try {
         // Пользователь может видеть только свой профиль, админ - любой
-        if (req.user.type !== 'admin' && req.user.id !== parseInt(req.params.id)) {
+        if (req.user.type !== 'admin' && !isSelf(req, 'user', req.params.id)) {
             return res.status(403).json({ error: 'Нет доступа' });
         }
 
@@ -43,7 +43,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
 router.put('/:id', authenticateToken, async (req, res) => {
     try {
         // Пользователь может обновлять только свой профиль, админ - любой
-        if (req.user.type !== 'admin' && req.user.id !== parseInt(req.params.id)) {
+        if (req.user.type !== 'admin' && !isSelf(req, 'user', req.params.id)) {
             return res.status(403).json({ error: 'Нет доступа' });
         }
 
@@ -64,6 +64,9 @@ router.put('/:id', authenticateToken, async (req, res) => {
 
         res.json({ user: updatedUser, message: 'Профиль обновлен' });
     } catch (error) {
+        if (error.code === 'SQLITE_CONSTRAINT' || String(error.message).includes('UNIQUE constraint')) {
+            return res.status(400).json({ error: 'Такой телефон или Telegram уже используется другим пользователем' });
+        }
         console.error('Ошибка обновления пользователя:', error);
         res.status(500).json({ error: 'Ошибка сервера' });
     }
@@ -73,7 +76,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
 router.delete('/:id', authenticateToken, async (req, res) => {
     try {
         // Пользователь может удалять только свой профиль, админ - любой
-        if (req.user.type !== 'admin' && req.user.id !== parseInt(req.params.id)) {
+        if (req.user.type !== 'admin' && !isSelf(req, 'user', req.params.id)) {
             return res.status(403).json({ error: 'Нет доступа' });
         }
 
@@ -86,7 +89,8 @@ router.delete('/:id', authenticateToken, async (req, res) => {
         }
 
         // Удаляем все объявления пользователя
-        await db.run('DELETE FROM announcements WHERE userId = ?', [userId]);
+        await db.ensureColumn('announcements', 'userType', 'TEXT');
+        await db.run("DELETE FROM announcements WHERE userId = ? AND (userType IS NULL OR userType = 'user')", [userId]);
 
         // Удаляем заявки пользователя (если есть)
         await db.run('DELETE FROM applications WHERE userId = ?', [userId]);

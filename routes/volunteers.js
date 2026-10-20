@@ -54,6 +54,9 @@ async function ensureVolunteersTable() {
 // Получить всех волонтеров (для админов и передержек)
 router.get('/', authenticateToken, async (req, res) => {
     try {
+        if (req.user.type !== 'admin' && req.user.type !== 'shelter') {
+            return res.status(403).json({ error: 'Нет доступа' });
+        }
         await ensureVolunteersTable();
         
         const volunteers = await db.all('SELECT * FROM volunteers ORDER BY date DESC');

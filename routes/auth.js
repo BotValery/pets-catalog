@@ -561,7 +561,7 @@ router.get('/me', authenticateToken, async (req, res) => {
         if (userType === 'user') {
             user = await db.get('SELECT id, name, telegram, phone, city, address, registeredAt FROM users WHERE id = ?', [userId]);
         } else if (userType === 'shelter') {
-            user = await db.get('SELECT * FROM shelters WHERE id = ?', [userId]);
+            user = await db.get('SELECT id, shelterName, authorizedPerson, address, phone, viber, telegram, website, email, agreementAccepted, registeredAt FROM shelters WHERE id = ?', [userId]);
         } else if (userType === 'admin') {
             user = await db.get('SELECT id, name, email, createdAt FROM admins WHERE id = ?', [userId]);
         }

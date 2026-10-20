@@ -549,7 +549,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (!currentUser) {
                 return false;
             }
-            return announcement.userId != null && announcement.userId === currentUser.id;
+            return announcement.userId != null && announcement.userId === currentUser.id && (!announcement.userType || announcement.userType === currentUser.type);
         };
         
         lostAnnouncements.innerHTML = filteredPets.map(pet => {
@@ -572,7 +572,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             
             let imageHtml = `<div class="pet-image announcement-pet-image">${petType === 'dog' ? '🐕' : '🐱'}</div>`;
             if (hasPhotos) {
-                imageHtml = `<div class="pet-image announcement-pet-image" style="background-image: url('${photos[0]}'); background-size: cover; background-position: center;"></div>`;
+                imageHtml = `<div class="pet-image announcement-pet-image" style="background-image: url('${escapeHtml(cssUrl(photos[0]))}'); background-size: cover; background-position: center;"></div>`;
             }
             
             return `
@@ -581,7 +581,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     <div class="pet-info">
                         <div class="pet-name announcement-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; cursor: pointer;" onclick="toggleAnnouncementDetails(this)">
                             <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                <span>${pet.name}</span>
+                                <span>${escapeHtml(pet.name)}</span>
                                 <span class="announcement-type type-lost" style="font-size: 0.75rem; padding: 0.2rem 0.6rem;">Потерян</span>
                             </div>
                             <span class="toggle-icon" style="font-size: 1.2rem; transition: transform 0.3s;">▼</span>
@@ -594,7 +594,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                                 </div>
                                 <div class="pet-detail">
                                     <span class="pet-detail-icon">📅</span>
-                                    <span>${pet.age || 'Не указано'}</span>
+                                    <span>${escapeHtml(pet.age || 'Не указано')}</span>
                                 </div>
                                 <div class="pet-detail">
                                     <span class="pet-detail-icon">${petType === 'dog' ? '🐕' : '🐱'}</span>
@@ -603,37 +603,37 @@ document.addEventListener('DOMContentLoaded', async function() {
                                 ${pet.breed ? `
                                 <div class="pet-detail">
                                     <span class="pet-detail-icon">🏷️</span>
-                                    <span>${pet.breed}</span>
+                                    <span>${escapeHtml(pet.breed)}</span>
                                 </div>
                                 ` : ''}
                                 <div class="pet-detail">
                                     <span class="pet-detail-icon">🎨</span>
-                                    <span>${pet.color}</span>
+                                    <span>${escapeHtml(pet.color)}</span>
                                 </div>
                                 <div class="pet-detail">
                                     <span class="pet-detail-icon">📍</span>
-                                    <span>${pet.location}</span>
+                                    <span>${escapeHtml(pet.location)}</span>
                                 </div>
                             </div>
                             ${pet.description ? `
                             <div style="font-size: 0.8rem; color: #666; margin-bottom: 0.5rem; line-height: 1.4;">
-                                <strong style="color: #333;">Описание:</strong> ${pet.description}
+                                <strong style="color: #333;">Описание:</strong> ${escapeHtml(pet.description)}
                             </div>
                             ` : ''}
                             <div style="font-size: 0.75rem; color: #666; margin-bottom: 0.3rem;">
-                                <strong style="color: #333;">Дата пропажи:</strong> ${formatDate(pet.date)}
+                                <strong style="color: #333;">Дата пропажи:</strong> ${escapeHtml(formatDate(pet.date))}
                             </div>
                             <div style="font-size: 0.75rem; color: #666; margin-bottom: 0.3rem;">
-                                <strong style="color: #333;">Контакты:</strong> ${pet.contact}
+                                <strong style="color: #333;">Контакты:</strong> ${escapeHtml(pet.contact)}
                             </div>
                             ${isOwner(pet) ? `
                             <div class="pet-card-actions" onclick="event.stopPropagation()" style="display: flex; gap: 0.5rem; align-items: center; justify-content: space-between; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid #f0f0f0;">
-                                <button class="btn-resolve-announcement" onclick="resolveAnnouncement(${pet.id}, 'lost')" title="Отметить как найденное" style="background: #4caf50; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 5px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 0.3rem;">
+                                <button class="btn-resolve-announcement" onclick="resolveAnnouncement(${escapeHtml(pet.id)}, 'lost')" title="Отметить как найденное" style="background: #4caf50; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 5px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 0.3rem;">
                                     ✓ Найден
                                 </button>
                                 <div style="display: flex; gap: 0.3rem;">
-                                    <button class="btn-edit-pet" onclick="editAnnouncement(${pet.id}, 'lost')" title="Редактировать">✏️</button>
-                                    <button class="btn-delete-pet" onclick="deleteAnnouncement(${pet.id})" title="Удалить">🗑️</button>
+                                    <button class="btn-edit-pet" onclick="editAnnouncement(${escapeHtml(pet.id)}, 'lost')" title="Редактировать">✏️</button>
+                                    <button class="btn-delete-pet" onclick="deleteAnnouncement(${escapeHtml(pet.id)})" title="Удалить">🗑️</button>
                                 </div>
                             </div>
                             ` : ''}
@@ -671,7 +671,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (!currentUser) {
                 return false;
             }
-            return announcement.userId != null && announcement.userId === currentUser.id;
+            return announcement.userId != null && announcement.userId === currentUser.id && (!announcement.userType || announcement.userType === currentUser.type);
         };
         
         foundAnnouncements.innerHTML = filteredPets.map(pet => {
@@ -694,7 +694,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             
             let imageHtml = `<div class="pet-image announcement-pet-image">${petType === 'dog' ? '🐕' : '🐱'}</div>`;
             if (hasPhotos) {
-                imageHtml = `<div class="pet-image announcement-pet-image" style="background-image: url('${photos[0]}'); background-size: cover; background-position: center;"></div>`;
+                imageHtml = `<div class="pet-image announcement-pet-image" style="background-image: url('${escapeHtml(cssUrl(photos[0]))}'); background-size: cover; background-position: center;"></div>`;
             }
             
             return `
@@ -716,7 +716,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                                 </div>
                                 <div class="pet-detail">
                                     <span class="pet-detail-icon">📅</span>
-                                    <span>${pet.age || 'Неизвестно'}</span>
+                                    <span>${escapeHtml(pet.age || 'Неизвестно')}</span>
                                 </div>
                                 <div class="pet-detail">
                                     <span class="pet-detail-icon">${petType === 'dog' ? '🐕' : '🐱'}</span>
@@ -725,37 +725,37 @@ document.addEventListener('DOMContentLoaded', async function() {
                                 ${pet.breed ? `
                                 <div class="pet-detail">
                                     <span class="pet-detail-icon">🏷️</span>
-                                    <span>${pet.breed}</span>
+                                    <span>${escapeHtml(pet.breed)}</span>
                                 </div>
                                 ` : ''}
                                 <div class="pet-detail">
                                     <span class="pet-detail-icon">🎨</span>
-                                    <span>${pet.color}</span>
+                                    <span>${escapeHtml(pet.color)}</span>
                                 </div>
                                 <div class="pet-detail">
                                     <span class="pet-detail-icon">📍</span>
-                                    <span>${pet.location}</span>
+                                    <span>${escapeHtml(pet.location)}</span>
                                 </div>
                             </div>
                             ${pet.description ? `
                             <div style="font-size: 0.8rem; color: #666; margin-bottom: 0.5rem; line-height: 1.4;">
-                                <strong style="color: #333;">Описание:</strong> ${pet.description}
+                                <strong style="color: #333;">Описание:</strong> ${escapeHtml(pet.description)}
                             </div>
                             ` : ''}
                             <div style="font-size: 0.75rem; color: #666; margin-bottom: 0.3rem;">
-                                <strong style="color: #333;">Дата находки:</strong> ${formatDate(pet.date)}
+                                <strong style="color: #333;">Дата находки:</strong> ${escapeHtml(formatDate(pet.date))}
                             </div>
                             <div style="font-size: 0.75rem; color: #666; margin-bottom: 0.3rem;">
-                                <strong style="color: #333;">Контакты:</strong> ${pet.contact}
+                                <strong style="color: #333;">Контакты:</strong> ${escapeHtml(pet.contact)}
                             </div>
                             ${isOwner(pet) ? `
                             <div class="pet-card-actions" onclick="event.stopPropagation()" style="display: flex; gap: 0.5rem; align-items: center; justify-content: space-between; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid #f0f0f0;">
-                                <button class="btn-resolve-announcement" onclick="resolveAnnouncement(${pet.id}, 'found')" title="Отметить как возвращенное" style="background: #4caf50; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 5px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 0.3rem;">
+                                <button class="btn-resolve-announcement" onclick="resolveAnnouncement(${escapeHtml(pet.id)}, 'found')" title="Отметить как возвращенное" style="background: #4caf50; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 5px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 0.3rem;">
                                     ✓ Вернул
                                 </button>
                                 <div style="display: flex; gap: 0.3rem;">
-                                    <button class="btn-edit-pet" onclick="editAnnouncement(${pet.id}, 'found')" title="Редактировать">✏️</button>
-                                    <button class="btn-delete-pet" onclick="deleteAnnouncement(${pet.id})" title="Удалить">🗑️</button>
+                                    <button class="btn-edit-pet" onclick="editAnnouncement(${escapeHtml(pet.id)}, 'found')" title="Редактировать">✏️</button>
+                                    <button class="btn-delete-pet" onclick="deleteAnnouncement(${escapeHtml(pet.id)})" title="Удалить">🗑️</button>
                                 </div>
                             </div>
                             ` : ''}
@@ -811,7 +811,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     return false;
                 }
                 // Проверяем, что userId существует и совпадает
-                return announcement.userId != null && announcement.userId === currentUser.id;
+                return announcement.userId != null && announcement.userId === currentUser.id && (!announcement.userType || announcement.userType === currentUser.type);
             };
 
             lostAnnouncements.innerHTML = filteredPets.map(pet => {
@@ -835,7 +835,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 // Определяем изображение
                 let imageHtml = `<div class="pet-image announcement-pet-image">${petType === 'dog' ? '🐕' : '🐱'}</div>`;
                 if (hasPhotos) {
-                    imageHtml = `<div class="pet-image announcement-pet-image" style="background-image: url('${photos[0]}'); background-size: cover; background-position: center;"></div>`;
+                    imageHtml = `<div class="pet-image announcement-pet-image" style="background-image: url('${escapeHtml(cssUrl(photos[0]))}'); background-size: cover; background-position: center;"></div>`;
                 }
                 
                 return `
@@ -844,7 +844,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     <div class="pet-info">
                         <div class="pet-name announcement-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; cursor: pointer;" onclick="toggleAnnouncementDetails(this)">
                             <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                <span>${pet.name}</span>
+                                <span>${escapeHtml(pet.name)}</span>
                                 <span class="announcement-type type-lost" style="font-size: 0.75rem; padding: 0.2rem 0.6rem;">Потерян</span>
                             </div>
                             <span class="toggle-icon" style="font-size: 1.2rem; transition: transform 0.3s;">▼</span>
@@ -857,7 +857,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                                 </div>
                                 <div class="pet-detail">
                                     <span class="pet-detail-icon">📅</span>
-                                    <span>${pet.age || 'Не указано'}</span>
+                                    <span>${escapeHtml(pet.age || 'Не указано')}</span>
                                 </div>
                                 <div class="pet-detail">
                                     <span class="pet-detail-icon">${petType === 'dog' ? '🐕' : '🐱'}</span>
@@ -866,37 +866,37 @@ document.addEventListener('DOMContentLoaded', async function() {
                                 ${pet.breed ? `
                                 <div class="pet-detail">
                                     <span class="pet-detail-icon">🏷️</span>
-                                    <span>${pet.breed}</span>
+                                    <span>${escapeHtml(pet.breed)}</span>
                                 </div>
                                 ` : ''}
                                 <div class="pet-detail">
                                     <span class="pet-detail-icon">🎨</span>
-                                    <span>${pet.color}</span>
+                                    <span>${escapeHtml(pet.color)}</span>
                                 </div>
                                 <div class="pet-detail">
                                     <span class="pet-detail-icon">📍</span>
-                                    <span>${pet.location}</span>
+                                    <span>${escapeHtml(pet.location)}</span>
                                 </div>
                             </div>
                             ${pet.description ? `
                             <div style="font-size: 0.8rem; color: #666; margin-bottom: 0.5rem; line-height: 1.4;">
-                                <strong style="color: #333;">Описание:</strong> ${pet.description}
+                                <strong style="color: #333;">Описание:</strong> ${escapeHtml(pet.description)}
                             </div>
                             ` : ''}
                             <div style="font-size: 0.75rem; color: #666; margin-bottom: 0.3rem;">
-                                <strong style="color: #333;">Дата пропажи:</strong> ${formatDate(pet.date)}
+                                <strong style="color: #333;">Дата пропажи:</strong> ${escapeHtml(formatDate(pet.date))}
                             </div>
                             <div style="font-size: 0.75rem; color: #666; margin-bottom: 0.3rem;">
-                                <strong style="color: #333;">Контакты:</strong> ${pet.contact}
+                                <strong style="color: #333;">Контакты:</strong> ${escapeHtml(pet.contact)}
                             </div>
                             ${isOwner(pet) ? `
                             <div class="pet-card-actions" onclick="event.stopPropagation()" style="display: flex; gap: 0.5rem; align-items: center; justify-content: space-between; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid #f0f0f0;">
-                                <button class="btn-resolve-announcement" onclick="resolveAnnouncement(${pet.id}, 'lost')" title="Отметить как найденное" style="background: #4caf50; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 5px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 0.3rem;">
+                                <button class="btn-resolve-announcement" onclick="resolveAnnouncement(${escapeHtml(pet.id)}, 'lost')" title="Отметить как найденное" style="background: #4caf50; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 5px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 0.3rem;">
                                     ✓ Найден
                                 </button>
                                 <div style="display: flex; gap: 0.3rem;">
-                                    <button class="btn-edit-pet" onclick="editAnnouncement(${pet.id}, 'lost')" title="Редактировать">✏️</button>
-                                    <button class="btn-delete-pet" onclick="deleteAnnouncement(${pet.id})" title="Удалить">🗑️</button>
+                                    <button class="btn-edit-pet" onclick="editAnnouncement(${escapeHtml(pet.id)}, 'lost')" title="Редактировать">✏️</button>
+                                    <button class="btn-delete-pet" onclick="deleteAnnouncement(${escapeHtml(pet.id)})" title="Удалить">🗑️</button>
                                 </div>
                             </div>
                             ` : ''}
@@ -951,7 +951,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     return false;
                 }
                 // Проверяем, что userId существует и совпадает
-                return announcement.userId != null && announcement.userId === currentUser.id;
+                return announcement.userId != null && announcement.userId === currentUser.id && (!announcement.userType || announcement.userType === currentUser.type);
             };
             
             if (filteredPets.length === 0) {
@@ -980,7 +980,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 // Определяем изображение
                 let imageHtml = `<div class="pet-image announcement-pet-image">${petType === 'dog' ? '🐕' : '🐱'}</div>`;
                 if (hasPhotos) {
-                    imageHtml = `<div class="pet-image announcement-pet-image" style="background-image: url('${photos[0]}'); background-size: cover; background-position: center;"></div>`;
+                    imageHtml = `<div class="pet-image announcement-pet-image" style="background-image: url('${escapeHtml(cssUrl(photos[0]))}'); background-size: cover; background-position: center;"></div>`;
                 }
                 
                 return `
@@ -1002,7 +1002,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                                 </div>
                                 <div class="pet-detail">
                                     <span class="pet-detail-icon">📅</span>
-                                    <span>${pet.age || 'Неизвестно'}</span>
+                                    <span>${escapeHtml(pet.age || 'Неизвестно')}</span>
                                 </div>
                                 <div class="pet-detail">
                                     <span class="pet-detail-icon">${petType === 'dog' ? '🐕' : '🐱'}</span>
@@ -1011,37 +1011,37 @@ document.addEventListener('DOMContentLoaded', async function() {
                                 ${pet.breed ? `
                                 <div class="pet-detail">
                                     <span class="pet-detail-icon">🏷️</span>
-                                    <span>${pet.breed}</span>
+                                    <span>${escapeHtml(pet.breed)}</span>
                                 </div>
                                 ` : ''}
                                 <div class="pet-detail">
                                     <span class="pet-detail-icon">🎨</span>
-                                    <span>${pet.color}</span>
+                                    <span>${escapeHtml(pet.color)}</span>
                                 </div>
                                 <div class="pet-detail">
                                     <span class="pet-detail-icon">📍</span>
-                                    <span>${pet.location}</span>
+                                    <span>${escapeHtml(pet.location)}</span>
                                 </div>
                             </div>
                             ${pet.description ? `
                             <div style="font-size: 0.8rem; color: #666; margin-bottom: 0.5rem; line-height: 1.4;">
-                                <strong style="color: #333;">Описание:</strong> ${pet.description}
+                                <strong style="color: #333;">Описание:</strong> ${escapeHtml(pet.description)}
                             </div>
                             ` : ''}
                             <div style="font-size: 0.75rem; color: #666; margin-bottom: 0.3rem;">
-                                <strong style="color: #333;">Дата находки:</strong> ${formatDate(pet.date)}
+                                <strong style="color: #333;">Дата находки:</strong> ${escapeHtml(formatDate(pet.date))}
                             </div>
                             <div style="font-size: 0.75rem; color: #666; margin-bottom: 0.3rem;">
-                                <strong style="color: #333;">Контакты:</strong> ${pet.contact}
+                                <strong style="color: #333;">Контакты:</strong> ${escapeHtml(pet.contact)}
                             </div>
                             ${isOwner(pet) ? `
                             <div class="pet-card-actions" onclick="event.stopPropagation()" style="display: flex; gap: 0.5rem; align-items: center; justify-content: space-between; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid #f0f0f0;">
-                                <button class="btn-resolve-announcement" onclick="resolveAnnouncement(${pet.id}, 'found')" title="Отметить как возвращенное" style="background: #4caf50; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 5px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 0.3rem;">
+                                <button class="btn-resolve-announcement" onclick="resolveAnnouncement(${escapeHtml(pet.id)}, 'found')" title="Отметить как возвращенное" style="background: #4caf50; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 5px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 0.3rem;">
                                     ✓ Вернул
                                 </button>
                                 <div style="display: flex; gap: 0.3rem;">
-                                    <button class="btn-edit-pet" onclick="editAnnouncement(${pet.id}, 'found')" title="Редактировать">✏️</button>
-                                    <button class="btn-delete-pet" onclick="deleteAnnouncement(${pet.id})" title="Удалить">🗑️</button>
+                                    <button class="btn-edit-pet" onclick="editAnnouncement(${escapeHtml(pet.id)}, 'found')" title="Редактировать">✏️</button>
+                                    <button class="btn-delete-pet" onclick="deleteAnnouncement(${escapeHtml(pet.id)})" title="Удалить">🗑️</button>
                                 </div>
                             </div>
                             ` : ''}
@@ -1207,7 +1207,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (photos.length > 0) {
                 photoPreview.innerHTML = photos.map((photo, index) => `
                     <div class="photo-preview-item" data-photo-index="${index}">
-                        <img src="${photo}" alt="Фото ${index + 1}">
+                        <img src="${escapeHtml(photo)}" alt="Фото ${index + 1}">
                         <button type="button" class="remove-photo" onclick="removePhotoFromAnnouncement(${index}, '${isLost ? 'lost' : 'found'}')">×</button>
                     </div>
                 `).join('');

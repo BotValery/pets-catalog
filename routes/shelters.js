@@ -1,6 +1,9 @@
 const express = require('express');
 const db = require('../config/database');
-const { authenticateToken, requireAdmin } = require('../middleware/auth');
+const { authenticateToken, requireAdmin, isSelf } = require('../middleware/auth');
+
+// Поля передержки без хеша пароля
+const SHELTER_FIELDS = 'id, shelterName, authorizedPerson, address, phone, viber, telegram, website, email, agreementAccepted, registeredAt';
 
 const router = express.Router();
 
@@ -33,7 +36,7 @@ router.get('/', async (req, res) => {
 // Получить все передержки с полной информацией (только для админа)
 router.get('/admin/all', authenticateToken, requireAdmin, async (req, res) => {
     try {
-        const shelters = await db.all('SELECT * FROM shelters ORDER BY registeredAt DESC');
+        const shelters = await db.all(`SELECT ${SHELTER_FIELDS} FROM shelters ORDER BY registeredAt DESC`);
         res.json({ shelters });
     } catch (error) {
         console.error('Ошибка получения передержек:', error);
@@ -45,11 +48,11 @@ router.get('/admin/all', authenticateToken, requireAdmin, async (req, res) => {
 router.get('/:id', authenticateToken, async (req, res) => {
     try {
         // Передержка может видеть только свой профиль, админ - любой
-        if (req.user.type !== 'admin' && req.user.id !== parseInt(req.params.id)) {
+        if (req.user.type !== 'admin' && !isSelf(req, 'shelter', req.params.id)) {
             return res.status(403).json({ error: 'Нет доступа' });
         }
 
-        const shelter = await db.get('SELECT * FROM shelters WHERE id = ?', [req.params.id]);
+        const shelter = await db.get(`SELECT ${SHELTER_FIELDS} FROM shelters WHERE id = ?`, [req.params.id]);
 
         if (!shelter) {
             return res.status(404).json({ error: 'Передержка не найдена' });
@@ -66,7 +69,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
 router.put('/:id', authenticateToken, async (req, res) => {
     try {
         // Передержка может обновлять только свой профиль, админ - любой
-        if (req.user.type !== 'admin' && req.user.id !== parseInt(req.params.id)) {
+        if (req.user.type !== 'admin' && !isSelf(req, 'shelter', req.params.id)) {
             return res.status(403).json({ error: 'Нет доступа' });
         }
 
@@ -93,7 +96,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
             [shelterName, authorizedPerson, address, phone, viber, telegram, website, req.params.id]
         );
 
-        const updatedShelter = await db.get('SELECT * FROM shelters WHERE id = ?', [req.params.id]);
+        const updatedShelter = await db.get(`SELECT ${SHELTER_FIELDS} FROM shelters WHERE id = ?`, [req.params.id]);
 
         res.json({ shelter: updatedShelter, message: 'Профиль обновлен' });
     } catch (error) {
@@ -106,7 +109,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
 router.delete('/:id', authenticateToken, async (req, res) => {
     try {
         // Передержка может удалять только свой профиль, админ - любой
-        if (req.user.type !== 'admin' && req.user.id !== parseInt(req.params.id)) {
+        if (req.user.type !== 'admin' && !isSelf(req, 'shelter', req.params.id)) {
             return res.status(403).json({ error: 'Нет доступа' });
         }
 
@@ -124,7 +127,8 @@ router.delete('/:id', authenticateToken, async (req, res) => {
                 "SELECT name FROM sqlite_master WHERE type='table' AND name='announcements'"
             );
             if (announcementsTable) {
-                await db.run('DELETE FROM announcements WHERE userId = ?', [shelterId]);
+                await db.ensureColumn('announcements', 'userType', 'TEXT');
+                await db.run("DELETE FROM announcements WHERE userId = ? AND (userType IS NULL OR userType = 'shelter')", [shelterId]);
             }
         } catch (error) {
             console.warn('Предупреждение при удалении объявлений:', error.message);
@@ -170,7 +174,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
         res.json({ message: 'Профиль передержки и все связанные объявления и питомцы успешно удалены' });
     } catch (error) {
         console.error('Ошибка удаления передержки:', error);
-        res.status(500).json({ error: 'Ошибка сервера', details: error.message });
+        res.status(500).json({ error: 'Ошибка сервера' });
     }
 });
 

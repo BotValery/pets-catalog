@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+
+# Database
+database.sqlite
+database.sqlite-journal
+*.db
+*.sqlite
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Build
+dist/
+build/
+
+# Temporary files
+*.tmp
+*.temp
+
+# SSL-сертификаты и закрытые ключи — никогда не коммитить
+ssl/
+*.key
+*.csr
+
+# Резервные копии
+_backup_*/

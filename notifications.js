@@ -1,5 +1,13 @@
 // Система уведомлений
 const NotificationSystem = {
+    // Экранирование текста сообщения (сообщения могут содержать данные пользователей)
+    _escape(message) {
+        if (typeof escapeHtml === 'function') return escapeHtml(message);
+        return String(message == null ? '' : message)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    },
+
     // Показать уведомление
     show(message, type = 'info', duration = 3000) {
         // Создаем контейнер для уведомлений, если его нет
@@ -18,7 +26,7 @@ const NotificationSystem = {
         const icon = this.getIcon(type);
         notification.innerHTML = `
             <div class="notification-icon">${icon}</div>
-            <div class="notification-message">${message}</div>
+            <div class="notification-message">${NotificationSystem._escape(message)}</div>
             <button class="notification-close" onclick="this.parentElement.remove()">&times;</button>
         `;
 
@@ -83,7 +91,7 @@ const NotificationSystem = {
                     <h3>Подтверждение</h3>
                 </div>
                 <div class="confirm-modal-body">
-                    <p>${message}</p>
+                    <p>${NotificationSystem._escape(message)}</p>
                 </div>
                 <div class="confirm-modal-actions">
                     <button class="btn-secondary confirm-cancel">Отмена</button>

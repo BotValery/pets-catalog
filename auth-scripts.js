@@ -587,8 +587,8 @@ document.addEventListener('DOMContentLoaded', async function() {
                     <div class="user-card">
                         <div class="user-type-badge" style="background: #667eea; color: white;">👑 Администратор</div>
                         <div class="user-details">
-                            <p><strong>Имя:</strong> ${currentUser.name || 'Администратор'}</p>
-                            <p><strong>Email:</strong> ${currentUser.email}</p>
+                            <p><strong>Имя:</strong> ${escapeHtml(currentUser.name || 'Администратор')}</p>
+                            <p><strong>Email:</strong> ${escapeHtml(currentUser.email)}</p>
                             <p><strong>Роль:</strong> Администратор системы</p>
                         </div>
                         <div style="margin-top: 1rem;">
@@ -601,9 +601,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                     <div class="user-card">
                         <div class="user-type-badge user">👤 Обычный пользователь</div>
                         <div class="user-details">
-                            <p><strong>Имя:</strong> ${currentUser.name} ${currentUser.surname || ''}</p>
-                            <p><strong>Telegram:</strong> ${currentUser.telegram ? '@' + currentUser.telegram : 'Не указан'}</p>
-                            <p><strong>Телефон:</strong> ${currentUser.phone}</p>
+                            <p><strong>Имя:</strong> ${escapeHtml(currentUser.name)} ${escapeHtml(currentUser.surname || '')}</p>
+                            <p><strong>Telegram:</strong> ${escapeHtml(currentUser.telegram ? '@' + currentUser.telegram : 'Не указан')}</p>
+                            <p><strong>Телефон:</strong> ${escapeHtml(currentUser.phone)}</p>
                         </div>
                     </div>
                 `;
@@ -612,14 +612,14 @@ document.addEventListener('DOMContentLoaded', async function() {
                     <div class="user-card">
                         <div class="user-type-badge shelter">🏠 Передержка</div>
                         <div class="user-details">
-                            <p><strong>Название:</strong> ${currentUser.shelterName}</p>
-                            <p><strong>Уполномоченное лицо:</strong> ${currentUser.authorizedPerson || currentUser.contactPerson || ''}</p>
-                            <p><strong>Адрес:</strong> ${currentUser.address}</p>
-                            <p><strong>Email:</strong> ${currentUser.email}</p>
-                            <p><strong>Телефон:</strong> ${currentUser.phone}</p>
-                            ${currentUser.viber ? `<p><strong>Viber:</strong> ${currentUser.viber}</p>` : ''}
-                            ${currentUser.telegram ? `<p><strong>Telegram:</strong> ${currentUser.telegram}</p>` : ''}
-                            ${currentUser.website ? `<p><strong>Сайт:</strong> <a href="${currentUser.website}" target="_blank">${currentUser.website}</a></p>` : ''}
+                            <p><strong>Название:</strong> ${escapeHtml(currentUser.shelterName)}</p>
+                            <p><strong>Уполномоченное лицо:</strong> ${escapeHtml(currentUser.authorizedPerson || currentUser.contactPerson || '')}</p>
+                            <p><strong>Адрес:</strong> ${escapeHtml(currentUser.address)}</p>
+                            <p><strong>Email:</strong> ${escapeHtml(currentUser.email)}</p>
+                            <p><strong>Телефон:</strong> ${escapeHtml(currentUser.phone)}</p>
+                            ${currentUser.viber ? `<p><strong>Viber:</strong> ${escapeHtml(currentUser.viber)}</p>` : ''}
+                            ${currentUser.telegram ? `<p><strong>Telegram:</strong> ${escapeHtml(currentUser.telegram)}</p>` : ''}
+                            ${currentUser.website ? `<p><strong>Сайт:</strong> <a href="${safeUrl(currentUser.website)}" target="_blank">${escapeHtml(currentUser.website)}</a></p>` : ''}
                         </div>
                     </div>
                 `;

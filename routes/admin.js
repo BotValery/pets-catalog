@@ -123,7 +123,7 @@ router.get('/users-and-shelters', async (req, res) => {
         
         if (sheltersTableExists) {
             try {
-                shelters = await db.all('SELECT * FROM shelters ORDER BY registeredAt DESC');
+                shelters = await db.all('SELECT id, shelterName, authorizedPerson, address, phone, viber, telegram, website, email, agreementAccepted, registeredAt FROM shelters ORDER BY registeredAt DESC');
             } catch (error) {
                 console.error('Ошибка получения передержек:', error);
             }

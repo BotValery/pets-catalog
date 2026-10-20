@@ -62,6 +62,18 @@ class Database {
         });
     }
 
+    // Добавить колонку в таблицу, если её ещё нет (безопасно вызывать повторно)
+    async ensureColumn(table, column, definition) {
+        const exists = await this.get("SELECT name FROM sqlite_master WHERE type='table' AND name=?", [table]);
+        if (!exists) return false;
+        const columns = await this.all(`PRAGMA table_info(${table})`);
+        if (!columns.some(c => c.name === column)) {
+            await this.run(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+            console.log(`✅ Колонка ${column} добавлена в таблицу ${table}`);
+        }
+        return true;
+    }
+
     // Закрытие соединения
     close() {
         return new Promise((resolve, reject) => {

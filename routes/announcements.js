@@ -5,6 +5,26 @@ const { authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();
 
+// Безопасный разбор JSON-массива (битые данные в БД не должны ронять запрос)
+function parseJsonArray(value) {
+    if (!value) return [];
+    try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+        return [];
+    }
+}
+
+// Является ли текущий пользователь автором объявления (или админом).
+// Id пользователей и передержек из разных таблиц могут совпадать, поэтому сверяем и тип автора.
+function canManageAnnouncement(req, announcement) {
+    if (req.user.type === 'admin') return true;
+    if (announcement.userId === null || announcement.userId === undefined) return false;
+    if (announcement.userType && announcement.userType !== req.user.type) return false;
+    return Number(announcement.userId) === Number(req.user.id);
+}
+
 // Функция для проверки и создания таблицы announcements, если её нет
 async function ensureAnnouncementsTable() {
     try {
@@ -77,6 +97,12 @@ async function ensureAnnouncementsColumns() {
             console.log('✅ Колонка gender добавлена');
         }
         
+        if (!columnNames.includes('userType')) {
+            console.log('📦 Добавление колонки userType в таблицу announcements...');
+            await db.run('ALTER TABLE announcements ADD COLUMN userType TEXT');
+            console.log('✅ Колонка userType добавлена');
+        }
+
         if (!columnNames.includes('resolved')) {
             console.log('📦 Добавление колонки resolved в таблицу announcements...');
             await db.run('ALTER TABLE announcements ADD COLUMN resolved BOOLEAN DEFAULT 0');
@@ -112,7 +138,7 @@ router.get('/', async (req, res) => {
         // Парсим photos из JSON строки и убеждаемся, что userId есть
         const announcementsWithParsedPhotos = announcements.map(ann => ({
             ...ann,
-            photos: ann.photos ? JSON.parse(ann.photos) : [],
+            photos: parseJsonArray(ann.photos),
             userId: ann.userId || null // Явно устанавливаем null если userId отсутствует
         }));
 
@@ -154,8 +180,8 @@ router.post('/', authenticateToken, [
         } = req.body;
 
         const result = await db.run(
-            `INSERT INTO announcements (type, name, type_animal, breed, color, size, location, date, description, contact, photos, age, gender, userId)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            `INSERT INTO announcements (type, name, type_animal, breed, color, size, location, date, description, contact, photos, age, gender, userId, userType)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 type,
                 name || null,
@@ -170,7 +196,8 @@ router.post('/', authenticateToken, [
                 photos ? JSON.stringify(photos) : null,
                 age || null,
                 gender || null,
-                req.user.id
+                req.user.id,
+                req.user.type
             ]
         );
 
@@ -199,7 +226,7 @@ router.get('/:id', async (req, res) => {
         }
         
         // Парсим photos из JSON строки и убеждаемся, что userId есть
-        announcement.photos = announcement.photos ? JSON.parse(announcement.photos) : [];
+        announcement.photos = parseJsonArray(announcement.photos);
         announcement.userId = announcement.userId || null; // Явно устанавливаем null если userId отсутствует
         
         res.json({ announcement });
@@ -229,12 +256,7 @@ router.put('/:id', authenticateToken, [
 
         // Проверяем, что пользователь является автором объявления
         // Если userId не существует (старые записи), разрешаем редактирование только админам
-        if (announcement.userId !== null && announcement.userId !== undefined) {
-            if (announcement.userId !== req.user.id) {
-                return res.status(403).json({ error: 'Нет доступа к этому объявлению' });
-            }
-        } else if (req.user.type !== 'admin') {
-            // Для старых записей без userId разрешаем редактирование только админам
+        if (!canManageAnnouncement(req, announcement)) {
             return res.status(403).json({ error: 'Нет доступа к этому объявлению' });
         }
 
@@ -278,7 +300,7 @@ router.put('/:id', authenticateToken, [
         );
 
         const updatedAnnouncement = await db.get('SELECT * FROM announcements WHERE id = ?', [req.params.id]);
-        updatedAnnouncement.photos = updatedAnnouncement.photos ? JSON.parse(updatedAnnouncement.photos) : [];
+        updatedAnnouncement.photos = parseJsonArray(updatedAnnouncement.photos);
 
         res.json({ 
             message: 'Объявление обновлено',
@@ -303,12 +325,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
 
         // Проверяем, что пользователь является автором объявления
         // Если userId не существует (старые записи), разрешаем удаление только админам
-        if (announcement.userId !== null && announcement.userId !== undefined) {
-            if (announcement.userId !== req.user.id) {
-                return res.status(403).json({ error: 'Нет доступа к этому объявлению' });
-            }
-        } else if (req.user.type !== 'admin') {
-            // Для старых записей без userId разрешаем удаление только админам
+        if (!canManageAnnouncement(req, announcement)) {
             return res.status(403).json({ error: 'Нет доступа к этому объявлению' });
         }
 
@@ -333,11 +350,7 @@ router.patch('/:id/resolve', authenticateToken, async (req, res) => {
         }
 
         // Проверяем, что пользователь является автором объявления
-        if (announcement.userId !== null && announcement.userId !== undefined) {
-            if (announcement.userId !== req.user.id) {
-                return res.status(403).json({ error: 'Нет доступа к этому объявлению' });
-            }
-        } else if (req.user.type !== 'admin') {
+        if (!canManageAnnouncement(req, announcement)) {
             return res.status(403).json({ error: 'Нет доступа к этому объявлению' });
         }
 

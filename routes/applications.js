@@ -44,10 +44,16 @@ router.get('/', authenticateToken, async (req, res) => {
         let sql = 'SELECT * FROM applications';
         const params = [];
 
-        // Если это передержка, показываем только заявки на её питомцев
+        // Передержка видит заявки только на своих питомцев,
+        // пользователь — только свои заявки, админ — все
         if (req.user.type === 'shelter') {
             sql += ' WHERE petId IN (SELECT id FROM pets WHERE shelterId = ?)';
             params.push(req.user.id);
+        } else if (req.user.type === 'user') {
+            sql += ' WHERE userId = ?';
+            params.push(req.user.id);
+        } else if (req.user.type !== 'admin') {
+            return res.status(403).json({ error: 'Нет доступа' });
         }
 
         sql += ' ORDER BY createdAt DESC';
@@ -59,7 +65,11 @@ router.get('/', authenticateToken, async (req, res) => {
             if (app.petId) {
                 app.pet = await db.get('SELECT * FROM pets WHERE id = ?', [app.petId]);
                 if (app.pet && app.pet.photos) {
-                    app.pet.photos = JSON.parse(app.pet.photos);
+                    try {
+                        app.pet.photos = JSON.parse(app.pet.photos);
+                    } catch (e) {
+                        app.pet.photos = [];
+                    }
                 }
             }
         }
@@ -72,12 +82,26 @@ router.get('/', authenticateToken, async (req, res) => {
 });
 
 // Получить заявки на конкретного питомца
-router.get('/pet/:petId', async (req, res) => {
+// Передержка-владелец и админ видят все заявки, пользователь — только свои
+router.get('/pet/:petId', authenticateToken, async (req, res) => {
     try {
-        const applications = await db.all(
-            'SELECT * FROM applications WHERE petId = ? ORDER BY createdAt DESC',
-            [req.params.petId]
-        );
+        await ensureApplicationsTable();
+
+        let applications;
+        const pet = await db.get('SELECT shelterId FROM pets WHERE id = ?', [req.params.petId]);
+        const isOwnerShelter = pet && req.user.type === 'shelter' && Number(pet.shelterId) === Number(req.user.id);
+
+        if (req.user.type === 'admin' || isOwnerShelter) {
+            applications = await db.all(
+                'SELECT * FROM applications WHERE petId = ? ORDER BY createdAt DESC',
+                [req.params.petId]
+            );
+        } else {
+            applications = await db.all(
+                'SELECT * FROM applications WHERE petId = ? AND userId = ? ORDER BY createdAt DESC',
+                [req.params.petId, req.user.id]
+            );
+        }
 
         res.json({ applications });
     } catch (error) {
@@ -101,6 +125,10 @@ router.post('/', authenticateToken, [
             return res.status(400).json({ errors: errors.array() });
         }
 
+        if (req.user.type !== 'user') {
+            return res.status(403).json({ error: 'Подавать заявки могут только обычные пользователи' });
+        }
+
         const { petId, userName, userPhone, userEmail } = req.body;
 
         // Проверяем существование питомца
@@ -113,10 +141,19 @@ router.post('/', authenticateToken, [
             return res.status(400).json({ error: 'Питомец уже забран' });
         }
 
+        // Повторная заявка от того же пользователя на того же питомца
+        const existing = await db.get(
+            'SELECT id FROM applications WHERE petId = ? AND userId = ?',
+            [petId, req.user.id]
+        );
+        if (existing) {
+            return res.status(400).json({ error: 'Вы уже подали заявку на это животное' });
+        }
+
         // Создаем заявку
         const result = await db.run(
             'INSERT INTO applications (petId, userId, userName, userPhone, userEmail, status) VALUES (?, ?, ?, ?, ?, ?)',
-            [petId, req.user.id, userName, userPhone, userEmail, 'новое']
+            [petId, req.user.id, userName, userPhone, userEmail || null, 'новое']
         );
 
         res.status(201).json({
@@ -154,7 +191,7 @@ router.patch('/:id/status', authenticateToken, requireShelter, [
 
         // Проверяем, что заявка относится к питомцу этой передержки
         const pet = await db.get('SELECT * FROM pets WHERE id = ?', [application.petId]);
-        if (pet.shelterId !== req.user.id) {
+        if (!pet || Number(pet.shelterId) !== Number(req.user.id)) {
             return res.status(403).json({ error: 'Нет доступа к этой заявке' });
         }
 

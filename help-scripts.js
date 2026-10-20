@@ -157,19 +157,19 @@ document.addEventListener('DOMContentLoaded', async function() {
             
             clinicsList.innerHTML = clinics.map(clinic => `
                 <div class="clinic-card">
-                    <div class="clinic-name">${clinic.name}</div>
+                    <div class="clinic-name">${escapeHtml(clinic.name)}</div>
                     <div class="clinic-info">
-                        <strong>📍 Адрес:</strong> ${clinic.address}
+                        <strong>📍 Адрес:</strong> ${escapeHtml(clinic.address)}
                     </div>
                     <div class="clinic-info">
-                        <strong>📞 Телефон:</strong> ${clinic.phone}
+                        <strong>📞 Телефон:</strong> ${escapeHtml(clinic.phone)}
                     </div>
                     ${clinic.services ? `
                     <div class="clinic-info">
-                        <strong>🩺 Услуги:</strong> ${clinic.services}
+                        <strong>🩺 Услуги:</strong> ${escapeHtml(clinic.services)}
                     </div>
                     ` : ''}
-                    <div class="clinic-hours">⏰ ${clinic.hours}</div>
+                    <div class="clinic-hours">⏰ ${escapeHtml(clinic.hours)}</div>
                 </div>
             `).join('');
         } catch (error) {

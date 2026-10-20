@@ -292,17 +292,17 @@ document.addEventListener('DOMContentLoaded', async function() {
                     html += `
                         <div class="application-card">
                             <div class="application-header">
-                                <h4>${app.pet ? app.pet.name : 'Животное'}</h4>
-                                <span class="application-status" style="background-color: ${statusColors[app.status] || '#999'}">${app.status}</span>
+                                <h4>${escapeHtml(app.pet ? app.pet.name : 'Животное')}</h4>
+                                <span class="application-status" style="background-color: ${escapeHtml(statusColors[app.status] || '#999')}">${escapeHtml(app.status)}</span>
                             </div>
                             <div class="application-info">
-                                <p><strong>Пользователь:</strong> ${app.userName}</p>
-                                <p><strong>Телефон:</strong> ${app.userPhone}</p>
-                                <p><strong>Email:</strong> ${app.userEmail}</p>
+                                <p><strong>Пользователь:</strong> ${escapeHtml(app.userName)}</p>
+                                <p><strong>Телефон:</strong> ${escapeHtml(app.userPhone)}</p>
+                                <p><strong>Email:</strong> ${escapeHtml(app.userEmail)}</p>
                                 <p><strong>Дата заявки:</strong> ${new Date(app.createdAt).toLocaleDateString('ru-RU')}</p>
                             </div>
                             <div class="application-actions">
-                                <select class="status-select" data-application-id="${app.id}">
+                                <select class="status-select" data-application-id="${escapeHtml(app.id)}">
                                     <option value="новое" ${app.status === 'новое' ? 'selected' : ''}>Новое</option>
                                     <option value="договорились" ${app.status === 'договорились' ? 'selected' : ''}>Договорились</option>
                                     <option value="отказались" ${app.status === 'отказались' ? 'selected' : ''}>Отказались</option>
@@ -344,7 +344,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     };
                     
                     const activitiesHtml = volunteer.activities && volunteer.activities.length > 0
-                        ? volunteer.activities.map(act => `<span class="activity-badge" style="background: #667eea; color: white; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.85rem; margin-right: 0.5rem;">${activitiesMap[act] || act}</span>`).join('')
+                        ? volunteer.activities.map(act => `<span class="activity-badge" style="background: #667eea; color: white; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.85rem; margin-right: 0.5rem;">${escapeHtml(activitiesMap[act] || act)}</span>`).join('')
                         : '<span class="activity-badge" style="background: #999; color: white; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.85rem;">Не указано</span>';
                     
                     const dateText = volunteer.date 
@@ -360,14 +360,14 @@ document.addEventListener('DOMContentLoaded', async function() {
                     html += `
                         <div class="application-card">
                             <div class="application-header">
-                                <h4>${volunteer.name}</h4>
+                                <h4>${escapeHtml(volunteer.name)}</h4>
                             </div>
                             <div class="application-info">
-                                <p><strong>Возраст:</strong> ${volunteer.age || 'Не указан'}</p>
-                                <p><strong>Телефон:</strong> ${volunteer.phone || 'Не указан'}</p>
-                                <p><strong>Telegram:</strong> ${volunteer.telegram || volunteer.email || 'Не указан'}</p>
-                                <p><strong>Город:</strong> ${volunteer.city || 'Не указан'}</p>
-                                <p><strong>Дата заявки:</strong> ${dateText}</p>
+                                <p><strong>Возраст:</strong> ${escapeHtml(volunteer.age || 'Не указан')}</p>
+                                <p><strong>Телефон:</strong> ${escapeHtml(volunteer.phone || 'Не указан')}</p>
+                                <p><strong>Telegram:</strong> ${escapeHtml(volunteer.telegram || volunteer.email || 'Не указан')}</p>
+                                <p><strong>Город:</strong> ${escapeHtml(volunteer.city || 'Не указан')}</p>
+                                <p><strong>Дата заявки:</strong> ${escapeHtml(dateText)}</p>
                             </div>
                             <div style="margin-top: 1rem;">
                                 <strong>Виды деятельности:</strong>
@@ -375,8 +375,8 @@ document.addEventListener('DOMContentLoaded', async function() {
                                     ${activitiesHtml}
                                 </div>
                             </div>
-                            ${volunteer.experience ? `<p style="margin-top: 1rem;"><strong>Опыт:</strong> ${volunteer.experience}</p>` : ''}
-                            ${volunteer.availability ? `<p style="margin-top: 0.5rem;"><strong>Доступность:</strong> ${volunteer.availability}</p>` : ''}
+                            ${volunteer.experience ? `<p style="margin-top: 1rem;"><strong>Опыт:</strong> ${escapeHtml(volunteer.experience)}</p>` : ''}
+                            ${volunteer.availability ? `<p style="margin-top: 0.5rem;"><strong>Доступность:</strong> ${escapeHtml(volunteer.availability)}</p>` : ''}
                         </div>
                     `;
                 }
@@ -496,7 +496,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 stack: error.stack
             });
             const errorMessage = error.response?.error || error.message || 'Неизвестная ошибка';
-            myPetsGrid.innerHTML = `<p style="text-align: center; padding: 2rem; color: #f56565;">Ошибка загрузки животных: ${errorMessage}</p>`;
+            myPetsGrid.innerHTML = `<p style="text-align: center; padding: 2rem; color: #f56565;">Ошибка загрузки животных: ${escapeHtml(errorMessage)}</p>`;
         }
     }
 
@@ -518,7 +518,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 stack: error.stack
             });
             const errorMessage = error.response?.error || error.message || 'Неизвестная ошибка';
-            adoptedPetsGrid.innerHTML = `<p style="text-align: center; padding: 2rem; color: #f56565;">Ошибка загрузки животных: ${errorMessage}</p>`;
+            adoptedPetsGrid.innerHTML = `<p style="text-align: center; padding: 2rem; color: #f56565;">Ошибка загрузки животных: ${escapeHtml(errorMessage)}</p>`;
         }
     }
 
@@ -565,9 +565,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         const ageText = getAgeText(pet.age, pet.ageYears, pet.ageMonths);
         const genderText = getGenderText(pet.gender);
         
-        let imageHtml = `<div class="pet-image">${pet.icon || (pet.type === 'dog' ? '🐕' : '🐱')}</div>`;
+        let imageHtml = `<div class="pet-image">${escapeHtml(pet.icon || (pet.type === 'dog' ? '🐕' : '🐱'))}</div>`;
         if (pet.photos && pet.photos.length > 0) {
-            imageHtml = `<div class="pet-image" style="background-image: url('${pet.photos[0]}'); background-size: cover; background-position: center;"></div>`;
+            imageHtml = `<div class="pet-image" style="background-image: url('${escapeHtml(cssUrl(pet.photos[0]))}'); background-size: cover; background-position: center;"></div>`;
         }
         
         // Статусы стерилизации
@@ -583,20 +583,20 @@ document.addEventListener('DOMContentLoaded', async function() {
         card.innerHTML = `
             ${imageHtml}
             <div class="pet-info">
-                <h4>${pet.name}</h4>
+                <h4>${escapeHtml(pet.name)}</h4>
                 <div class="pet-details-simple">
                     <div class="pet-detail">
                         <span class="pet-detail-icon">${pet.gender === 'male' ? '♂️' : '♀️'}</span>
-                        <span>${genderText}</span>
+                        <span>${escapeHtml(genderText)}</span>
                     </div>
                     <div class="pet-detail">
                         <span class="pet-detail-icon">📅</span>
-                        <span>${ageText}</span>
+                        <span>${escapeHtml(ageText)}</span>
                     </div>
                 </div>
                 <div style="margin-top: 0.5rem;">
                     <label style="font-size: 0.9rem; color: #666; display: block; margin-bottom: 0.25rem;">Статус:</label>
-                    <select class="adopt-status-select" data-pet-id="${pet.id}" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9rem; margin-bottom: 0.5rem;">
+                    <select class="adopt-status-select" data-pet-id="${escapeHtml(pet.id)}" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9rem; margin-bottom: 0.5rem;">
                         <option value="false" ${!isAdopted ? 'selected' : ''}>Не отдан</option>
                         <option value="true" ${isAdopted ? 'selected' : ''}>Отдан</option>
                     </select>
@@ -605,7 +605,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     <p style="color: #48bb78; font-weight: bold; margin-top: 0.5rem;">✅ Отдан</p>
                     <div style="margin-top: 0.5rem;">
                         <label style="font-size: 0.9rem; color: #666; display: block; margin-bottom: 0.25rem;">Статус стерилизации:</label>
-                        <select class="sterilization-status-select" data-pet-id="${pet.id}" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9rem;">
+                        <select class="sterilization-status-select" data-pet-id="${escapeHtml(pet.id)}" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9rem;">
                             <option value="">Не указано</option>
                             <option value="sterilized" ${currentSterilizationStatus === 'sterilized' ? 'selected' : ''}>Стерелизована</option>
                             <option value="will_sterilize" ${currentSterilizationStatus === 'will_sterilize' ? 'selected' : ''}>Сами стерилизуют</option>
@@ -616,18 +616,18 @@ document.addEventListener('DOMContentLoaded', async function() {
                 ${pet.comments ? `
                     <div style="margin-top: 0.75rem; padding: 0.5rem; background: #f0f7ff; border-left: 3px solid #667eea; border-radius: 4px;">
                         <div style="font-size: 0.85rem; color: #667eea; font-weight: bold; margin-bottom: 0.25rem;">💬 Комментарии:</div>
-                        <div style="font-size: 0.8rem; color: #555; line-height: 1.4;">${pet.comments}</div>
+                        <div style="font-size: 0.8rem; color: #555; line-height: 1.4;">${escapeHtml(pet.comments)}</div>
                     </div>
                 ` : ''}
                 ${pet.foundLocation ? `
                     <div style="margin-top: 0.5rem; padding: 0.5rem; background: #fff5e6; border-left: 3px solid #ff9800; border-radius: 4px;">
                         <div style="font-size: 0.85rem; color: #ff9800; font-weight: bold; margin-bottom: 0.25rem;">📍 Где нашли:</div>
-                        <div style="font-size: 0.8rem; color: #555; line-height: 1.4;">${pet.foundLocation}</div>
+                        <div style="font-size: 0.8rem; color: #555; line-height: 1.4;">${escapeHtml(pet.foundLocation)}</div>
                     </div>
                 ` : ''}
                 <div class="pet-card-actions" onclick="event.stopPropagation()">
-                    <button class="btn-edit-pet" onclick="editPet(${pet.id})" title="Редактировать">✏️</button>
-                    <button class="btn-delete-pet" onclick="deletePet(${pet.id})" title="Удалить">🗑️</button>
+                    <button class="btn-edit-pet" onclick="editPet(${escapeHtml(pet.id)})" title="Редактировать">✏️</button>
+                    <button class="btn-delete-pet" onclick="deletePet(${escapeHtml(pet.id)})" title="Удалить">🗑️</button>
                 </div>
             </div>
         `;
@@ -666,7 +666,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 !e.target.closest('.custom-select-dropdown') &&
                 !e.target.closest('.custom-select-options') &&
                 !e.target.closest('.custom-select-option')) {
-                window.location.href = `pet-detail.html?id=${pet.id}`;
+                window.location.href = `pet-detail.html?id=${encodeURIComponent(pet.id)}`;
             }
         });
         
@@ -754,7 +754,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 if (pet.photos && pet.photos.length > 0) {
                     photoPreview.innerHTML = pet.photos.map((photo, index) => `
                         <div class="photo-preview-item" data-photo-index="${index}">
-                            <img src="${photo}" alt="Фото ${index + 1}">
+                            <img src="${escapeHtml(photo)}" alt="Фото ${index + 1}">
                             <button type="button" class="remove-photo" onclick="removePhotoFromEdit(${index})">×</button>
                         </div>
                     `).join('');

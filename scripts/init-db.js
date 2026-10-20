@@ -1,5 +1,7 @@
 const db = require('../config/database');
+require('dotenv').config();
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 
 async function initDatabase() {
     try {
@@ -159,7 +161,13 @@ async function initDatabase() {
                 donorEmail TEXT,
                 donorPhone TEXT,
                 message TEXT,
-                date DATETIME DEFAULT CURRENT_TIMESTAMP
+                anonymous BOOLEAN DEFAULT 0,
+                paymentId TEXT,
+                paymentStatus TEXT DEFAULT 'pending',
+                vtbOrderId TEXT,
+                date DATETIME DEFAULT CURRENT_TIMESTAMP,
+                createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         `);
 
@@ -194,8 +202,10 @@ async function initDatabase() {
         console.log('✅ Индексы созданы');
 
         // Создание админа по умолчанию
-        const adminEmail = 'admin@example.com';
-        const adminPassword = 'admin123';
+        // Данные берутся из .env (ADMIN_EMAIL, ADMIN_PASSWORD). Если пароль не задан —
+        // генерируется случайный и один раз выводится в консоль.
+        const adminEmail = process.env.ADMIN_EMAIL || 'admin@example.com';
+        const adminPassword = process.env.ADMIN_PASSWORD || crypto.randomBytes(9).toString('base64url');
         
         const existingAdmin = await db.get('SELECT * FROM admins WHERE email = ?', [adminEmail]);
         
@@ -207,7 +217,7 @@ async function initDatabase() {
             );
             console.log('✅ Админ создан:');
             console.log(`   Email: ${adminEmail}`);
-            console.log(`   Пароль: ${adminPassword}`);
+            console.log(`   Пароль: ${adminPassword}  ← сохраните его, он больше не будет показан`);
         } else {
             console.log('ℹ️  Админ уже существует');
         }

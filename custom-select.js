@@ -45,7 +45,7 @@ window.CustomSelect = class CustomSelect {
             this.button.disabled = true;
         }
         this.button.innerHTML = `
-            <span class="custom-select-text">${this.getSelectedText()}</span>
+            <span class="custom-select-text">${escapeHtml(this.getSelectedText())}</span>
             <span class="custom-select-arrow">▼</span>
         `;
         

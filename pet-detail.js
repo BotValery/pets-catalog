@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 <div class="pet-photos-gallery">
                     ${pet.photos.map((photo, index) => `
                         <div class="pet-photo-item ${index === 0 ? 'active' : ''}">
-                            <img src="${photo}" alt="Фото ${pet.name} ${index + 1}">
+                            <img src="${escapeHtml(photo)}" alt="Фото ${escapeHtml(pet.name)} ${index + 1}">
                         </div>
                     `).join('')}
                 </div>
@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             photosHtml = `
                 <div class="pet-photos-gallery">
                     <div class="pet-photo-item active">
-                        <div class="pet-image-large">${pet.icon || (pet.type === 'dog' ? '🐕' : '🐱')}</div>
+                        <div class="pet-image-large">${escapeHtml(pet.icon || (pet.type === 'dog' ? '🐕' : '🐱'))}</div>
                     </div>
                 </div>
             `;
@@ -100,7 +100,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             <div class="pet-detail-card">
                 <div class="pet-detail-header">
                     <a href="take-pet.html" class="back-link">← Назад к каталогу</a>
-                    <h2>${pet.name}</h2>
+                    <h2>${escapeHtml(pet.name)}</h2>
                 </div>
                 
                 <div class="pet-detail-content">
@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     
                     <div class="pet-detail-info">
                         <div class="pet-detail-badges">
-                            <span class="pet-badge badge-type-${pet.type}">${typeText}</span>
+                            <span class="pet-badge badge-type-${escapeHtml(pet.type)}">${escapeHtml(typeText)}</span>
                         </div>
                         
                         <div class="pet-detail-section">
@@ -118,30 +118,30 @@ document.addEventListener('DOMContentLoaded', async function() {
                             <div class="pet-info-grid">
                                 <div class="pet-info-item">
                                     <span class="info-label">Тип:</span>
-                                    <span class="info-value">${typeText}</span>
+                                    <span class="info-value">${escapeHtml(typeText)}</span>
                                 </div>
                                 <div class="pet-info-item">
                                     <span class="info-label">Возраст:</span>
-                                    <span class="info-value">${ageText}</span>
+                                    <span class="info-value">${escapeHtml(ageText)}</span>
                                 </div>
                                 <div class="pet-info-item">
                                     <span class="info-label">Пол:</span>
-                                    <span class="info-value">${genderText}</span>
+                                    <span class="info-value">${escapeHtml(genderText)}</span>
                                 </div>
                                 <div class="pet-info-item">
                                     <span class="info-label">Размер:</span>
-                                    <span class="info-value">${sizeText}</span>
+                                    <span class="info-value">${escapeHtml(sizeText)}</span>
                                 </div>
                                 ${pet.breed ? `
                                 <div class="pet-info-item">
                                     <span class="info-label">Порода:</span>
-                                    <span class="info-value">${pet.breed}</span>
+                                    <span class="info-value">${escapeHtml(pet.breed)}</span>
                                 </div>
                                 ` : ''}
                                 ${pet.color ? `
                                 <div class="pet-info-item">
                                     <span class="info-label">Окрас:</span>
-                                    <span class="info-value">${pet.color}</span>
+                                    <span class="info-value">${escapeHtml(pet.color)}</span>
                                 </div>
                                 ` : ''}
                             </div>
@@ -150,19 +150,19 @@ document.addEventListener('DOMContentLoaded', async function() {
                         ${pet.character ? `
                         <div class="pet-detail-section">
                             <h3>Характер</h3>
-                            <p class="pet-character-text">${pet.character}</p>
+                            <p class="pet-character-text">${escapeHtml(pet.character)}</p>
                         </div>
                         ` : ''}
                         
                         ${pet.description ? `
                         <div class="pet-detail-section">
                             <h3>Описание</h3>
-                            <p class="pet-description-text">${pet.description}</p>
+                            <p class="pet-description-text">${escapeHtml(pet.description)}</p>
                         </div>
                         ` : ''}
                         
                         <div class="pet-detail-actions">
-                            <button onclick="applyForPet(${pet.id})" class="btn-apply" id="applyBtn">
+                            <button onclick="applyForPet(${escapeHtml(pet.id)})" class="btn-apply" id="applyBtn">
                                 Хочу взять!
                             </button>
                         </div>

@@ -1,6 +1,13 @@
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+require('dotenv').config();
+
+const JWT_SECRET = process.env.JWT_SECRET;
+
+// Без секрета любой может подделать токен входа, поэтому сервер не запускается
+if (!JWT_SECRET || JWT_SECRET.length < 16) {
+    throw new Error('JWT_SECRET не задан в .env (или короче 16 символов). Запуск сервера невозможен.');
+}
 
 // Middleware для проверки JWT токена
 const authenticateToken = (req, res, next) => {
@@ -44,7 +51,12 @@ const requireUserOrShelter = (req, res, next) => {
     next();
 };
 
+// Проверка «это его собственный профиль»: совпадает и id, и тип аккаунта.
+// Id пользователей, передержек и админов — из разных таблиц и могут совпадать.
+const isSelf = (req, type, id) => req.user.type === type && Number(req.user.id) === Number(id);
+
 module.exports = {
+    isSelf,
     authenticateToken,
     requireAdmin,
     requireShelter,
