@@ -132,6 +132,11 @@ document.addEventListener('DOMContentLoaded', async function() {
     const foundPhotos = document.getElementById('foundPhotos');
     const lostPhotoPreview = document.getElementById('lostPhotoPreview');
     const foundPhotoPreview = document.getElementById('foundPhotoPreview');
+    // Редактор обложки карточки (первое фото)
+    if (window.PhotoCover) {
+        if (lostPetForm && lostPhotos) PhotoCover.attach(lostPetForm, lostPhotos);
+        if (foundPetForm && foundPhotos) PhotoCover.attach(foundPetForm, foundPhotos);
+    }
     const dateFilterFrom = document.getElementById('dateFilterFrom');
     const dateFilterTo = document.getElementById('dateFilterTo');
     const resetDateFilterBtn = document.getElementById('resetDateFilter');
@@ -301,6 +306,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const newPhotos = await processPhotos(Array.from(files));
                 photos = [...photos, ...newPhotos];
             }
+            if (window.PhotoCover) photos = PhotoCover.apply(lostPetForm, photos);
             
             const announcement = {
                 name: formData.get('name'),
@@ -369,6 +375,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const newPhotos = await processPhotos(Array.from(files));
                 photos = [...photos, ...newPhotos];
             }
+            if (window.PhotoCover) photos = PhotoCover.apply(foundPetForm, photos);
             
             const announcement = {
                 petType: formData.get('type'),
@@ -520,6 +527,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Функция обновления счетчика
     function updateCounterDisplay() {
+        if (!foundCounter) return; // счётчик убран со страницы
         const count = AnnouncementsSystem.getFoundCounter();
         foundCounter.textContent = count;
     }

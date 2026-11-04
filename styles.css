@@ -3561,3 +3561,99 @@ input[readonly] {
     }
 }
 
+/* ===== Обложки карточек: всегда 4:3 — ровно тот кадр, что выбран в редакторе (2026-11-04) ===== */
+.pet-image,
+#lostAnnouncements .announcement-pet-image,
+#foundAnnouncements .announcement-pet-image,
+.announcements-list .announcement-pet-image,
+#lostAnnouncements .pet-image,
+#foundAnnouncements .pet-image,
+.announcements-list .pet-image {
+    height: auto !important;
+    min-height: 0 !important;
+    aspect-ratio: 4 / 3;
+}
+
+/* ===== Редактор обложки ===== */
+.pe-cover {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-top: 0.75rem;
+    padding: 0.75rem;
+    border: 1px dashed #c3c8f0;
+    border-radius: 10px;
+    background: #f7f8ff;
+}
+.pe-cover[hidden] { display: none; }
+.pe-cover-thumb {
+    width: 120px;
+    aspect-ratio: 4 / 3;
+    flex-shrink: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+}
+.pe-cover-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pe-cover-side { display: flex; flex-direction: column; gap: 0.35rem; min-width: 0; }
+.pe-cover-hint { font-size: 0.85rem; color: #666; }
+.pe-cover-btn { align-self: flex-start; padding: 0.45rem 0.9rem; font-size: 0.9rem; }
+
+body.pe-open { overflow: hidden; }
+.pe-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+    background: rgba(20, 20, 35, 0.75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+.pe-dialog {
+    background: #fff;
+    border-radius: 14px;
+    width: min(720px, 100%);
+    max-height: calc(100vh - 2rem);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+.pe-head { padding: 1rem 1.25rem 0.5rem; }
+.pe-head h3 { margin: 0 0 0.25rem; }
+.pe-head p { margin: 0; color: #666; font-size: 0.9rem; }
+.pe-stage {
+    height: min(60vh, 460px);
+    background: #222;
+    margin: 0.5rem 0;
+}
+.pe-stage img { display: block; max-width: 100%; }
+.pe-tools { display: flex; gap: 0.5rem; justify-content: center; padding: 0 1rem; }
+.pe-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid #d6d9f2;
+    background: #f4f5ff;
+    font-size: 1.3rem;
+    line-height: 1;
+    cursor: pointer;
+}
+.pe-btn:hover { background: #e8eaff; }
+.pe-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+    padding: 0.75rem 1.25rem 1rem;
+}
+@media (max-width: 480px) {
+    .pe-overlay { padding: 0; }
+    .pe-dialog { border-radius: 0; height: 100%; max-height: none; }
+    .pe-stage { flex: 1; height: auto; min-height: 0; }
+    .pe-cover-thumb { width: 96px; }
+}

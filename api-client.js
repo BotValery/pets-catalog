@@ -30,11 +30,11 @@ function cssUrl(value) {
     return String(value).replace(/['"()\\\s]/g, ch => '%' + ch.charCodeAt(0).toString(16).padStart(2, '0'));
 }
 
-// Адрес уменьшенной копии фото для карточек в списках:
-// /uploads/<id>.jpg -> /uploads/<id>_t.jpg (старые base64-фото возвращаются как есть)
+// Адрес обложки фото для карточек в списках (кадр 4:3):
+// /uploads/<id>.jpg -> /uploads/<id>_c.jpg (старые base64-фото возвращаются как есть)
 function thumbUrl(url) {
-    const m = typeof url === 'string' && url.match(/^\/uploads\/([a-f0-9]{32})(?:_t)?\.jpg$/);
-    return m ? '/uploads/' + m[1] + '_t.jpg' : url;
+    const m = typeof url === 'string' && url.match(/^\/uploads\/([a-f0-9]{32})(?:_t|_c)?\.jpg$/);
+    return m ? '/uploads/' + m[1] + '_c.jpg' : url;
 }
 
 if (typeof window !== 'undefined') {

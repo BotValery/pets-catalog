@@ -22,6 +22,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     const addPetForm = document.getElementById('addPetForm');
     const petPhotos = document.getElementById('petPhotos');
     const photoPreview = document.getElementById('photoPreview');
+    // Редактор обложки карточки (первое фото)
+    if (window.PhotoCover && addPetForm && petPhotos) PhotoCover.attach(addPetForm, petPhotos);
 
     // Проверяем авторизацию
     const currentUser = AuthSystem.getCurrentUser();
@@ -229,6 +231,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                         const existingPhotos = JSON.parse(addPetForm.dataset.existingPhotos || '[]');
                         // Объединяем существующие фотографии с новыми
                         pet.photos = [...existingPhotos, ...pet.photos];
+                        if (window.PhotoCover) pet.photos = PhotoCover.apply(addPetForm, pet.photos);
                         
                         await apiClient.updatePet(editId, pet);
                         NotificationSystem.success('Животное успешно обновлено!');
@@ -236,6 +239,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                         delete addPetForm.dataset.existingPhotos;
                     } else {
                         // Создание нового питомца
+                        if (window.PhotoCover) pet.photos = PhotoCover.apply(addPetForm, pet.photos);
                         await apiClient.addPet(pet);
                         NotificationSystem.success('Животное успешно размещено!');
                     }
