@@ -368,8 +368,10 @@ document.addEventListener('DOMContentLoaded', async function() {
                     loginIdentifier.dataset.phoneMaskApplied = 'false';
                     loginIdentifier.type = 'text';
                 }
-                // Перенаправляем на главную страницу
-                window.location.href = 'index.html';
+                // Возвращаем туда, откуда отправили на вход (только адреса этого сайта), иначе на главную
+                const back = new URLSearchParams(window.location.search).get('return');
+                const safeBack = back && /^\/(?!\/)[^\s\\]*$/.test(back) && !/auth\.html/.test(back) ? back : 'index.html';
+                window.location.href = safeBack;
             } else {
                 NotificationSystem.error(result.message);
             }

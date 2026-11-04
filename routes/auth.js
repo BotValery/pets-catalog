@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 const db = require('../config/database');
-const { authenticateToken, JWT_SECRET } = require('../middleware/auth');
+const { authenticateToken, JWT_SECRET, TOKEN_TTL } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -253,7 +253,7 @@ router.post('/register/user', [
         const token = jwt.sign(
             { id: userId, phone: normalizedPhone || phone, type: 'user' },
             JWT_SECRET,
-            { expiresIn: '7d' }
+            { expiresIn: TOKEN_TTL }
         );
 
         res.status(201).json({
@@ -403,7 +403,7 @@ router.post('/register/shelter', [
         const token = jwt.sign(
             { id: result.id, identifier: tokenIdentifier, type: 'shelter' },
             JWT_SECRET,
-            { expiresIn: '7d' }
+            { expiresIn: TOKEN_TTL }
         );
 
         res.status(201).json({
@@ -510,7 +510,7 @@ router.post('/login', [
         const token = jwt.sign(
             { id: user.id, identifier: tokenIdentifier, type: userType },
             JWT_SECRET,
-            { expiresIn: '7d' }
+            { expiresIn: TOKEN_TTL }
         );
 
         // Формирование ответа в зависимости от типа пользователя

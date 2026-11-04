@@ -100,21 +100,54 @@ class ApiClient {
         return headers;
     }
 
+    // Вход истёк или недействителен: сбрасываем его, чтобы сайт не показывал «вы вошли»,
+    // когда сервер уже не принимает запросы. silent — без перехода на страницу входа.
+    handleSessionExpired(silent) {
+        this.setToken(null);
+        localStorage.removeItem('currentUser');
+        if (typeof window === 'undefined') return;
+        if (typeof window.updateNavigation === 'function') window.updateNavigation();
+        const onAuthPage = /auth\.html$/.test(window.location.pathname);
+        if (!window.__sessionExpiredShown && typeof NotificationSystem !== 'undefined' && !onAuthPage) {
+            window.__sessionExpiredShown = true;
+            NotificationSystem.warning('Сессия истекла — войдите в аккаунт снова', 5000);
+        }
+        if (!silent && !onAuthPage) {
+            const back = window.location.pathname + window.location.search;
+            setTimeout(() => { window.location.href = 'auth.html?return=' + encodeURIComponent(back); }, 1500);
+        }
+    }
+
     // Базовый метод для запросов
     async request(endpoint, options = {}) {
         // Определяем базовый URL динамически при каждом запросе
         const apiBaseUrl = getApiBaseUrlDynamic();
         const url = `${apiBaseUrl}${endpoint}`;
+        const { silent, ...fetchOptions } = options;
+        // токен мог обновиться в другой вкладке
+        this.token = localStorage.getItem('authToken');
+        const sentToken = this.token;
         const config = {
-            ...options,
+            ...fetchOptions,
             headers: {
                 ...this.getHeaders(),
-                ...options.headers
+                ...fetchOptions.headers
             }
         };
 
         try {
             const response = await fetch(url, config);
+
+            // Сервер продлил вход — сохраняем новый токен
+            const renewed = response.headers.get('X-Auth-Token');
+            if (renewed && sentToken) this.setToken(renewed);
+
+            // Вход истёк: сбрасываем его (только если запрос шёл с токеном)
+            if (response.status === 401 && sentToken) {
+                let code = null;
+                try { code = (await response.clone().json()).code; } catch (e) {}
+                if (code === 'AUTH_EXPIRED' || code === 'AUTH_REQUIRED') this.handleSessionExpired(silent);
+            }
             
             // Проверяем, есть ли ответ
             if (!response.ok) {
@@ -546,3 +579,17 @@ if (typeof module !== 'undefined' && module.exports) {
     module.exports = apiClient;
 }
 
+// При открытии страницы тихо проверяем вход: сервер продлит его, а истёкший сразу сбросится
+// (имя пропадёт из меню и появится «Вход»), вместо ошибок при первом же действии.
+if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+    document.addEventListener('DOMContentLoaded', () => {
+        if (!localStorage.getItem('authToken') || !localStorage.getItem('currentUser')) return;
+        apiClient.request('/auth/me', { silent: true }).then(data => {
+            if (!data || !data.user) return;
+            try {
+                const old = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                localStorage.setItem('currentUser', JSON.stringify({ ...old, ...data.user }));
+            } catch (e) {}
+        }).catch(() => {});
+    });
+}
