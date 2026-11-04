@@ -161,7 +161,7 @@ header.nav-open .mobile-menu-btn {
 
 .banner-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
     gap: 2rem;
     margin-top: 2rem;
 }
@@ -325,7 +325,7 @@ header.nav-open .mobile-menu-btn {
 
 .filters {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
     gap: 1.5rem;
     align-items: end;
 }
@@ -442,7 +442,7 @@ header.nav-open .mobile-menu-btn {
 
 .pets-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
     gap: 2rem;
 }
 
@@ -645,7 +645,7 @@ body > .custom-select-dropdown.open {
 /* Emergency Forms Section */
 .forms-container {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
     gap: 2rem;
     margin-bottom: 3rem;
 }
@@ -1149,7 +1149,7 @@ select option:hover {
 #lostAnnouncements,
 #foundAnnouncements {
     display: grid !important;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 350px)) !important;
+    grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 350px)) !important;
     gap: 1rem !important;
     justify-content: start !important;
 }
@@ -1244,7 +1244,7 @@ select option:hover {
     #lostAnnouncements,
     #foundAnnouncements,
     .announcements-list {
-        grid-template-columns: repeat(auto-fill, minmax(240px, 280px));
+        grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 280px));
         gap: 0.75rem;
         justify-content: start;
     }
@@ -1743,7 +1743,7 @@ select option:hover {
 /* Shelters Section */
 .shelters-list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(350px, 100%), 1fr));
     gap: 2rem;
 }
 
@@ -2314,7 +2314,7 @@ footer {
 
 .form-row {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
     gap: 1rem;
 }
 
@@ -2846,7 +2846,7 @@ input[readonly] {
 
 .pet-info-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
     gap: 1rem;
 }
 
@@ -3673,4 +3673,87 @@ body.pe-open { overflow: hidden; }
     color: #fff;
     font-size: 0.7rem;
     font-weight: 600;
+}
+
+/* ===== Узкие экраны и крупный шрифт в браузере телефона (2026-11-04) ===== */
+html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+.form-section,
+.announcements-section,
+.pet-card {
+    min-width: 0;
+}
+.form-header h3,
+.form-header p,
+.announcements-section h3 {
+    overflow-wrap: anywhere;
+}
+@media (max-width: 480px) {
+    .form-section,
+    .announcements-section {
+        padding: 1rem;
+    }
+    .form-header {
+        padding: 1rem 2.25rem 1rem 0.75rem; /* справа место для стрелки */
+        margin-bottom: 1rem;
+    }
+    .form-header h3 {
+        font-size: clamp(1.2rem, 6.5vw, 1.8rem);
+    }
+    .form-icon {
+        font-size: 2.4rem;
+        margin-bottom: 0.5rem;
+    }
+    .form-toggle-icon {
+        right: 0.5rem;
+    }
+    .announcements-section h3 {
+        font-size: clamp(1.4rem, 7vw, 2rem);
+    }
+}
+/* Поля форм и колонки сеток не распирают страницу */
+.form-group,
+.form-row > *,
+.donations-content > *,
+.volunteer-content > *,
+.clinics-content > * {
+    min-width: 0;
+}
+.form-group input,
+.form-group select,
+.form-group textarea {
+    min-width: 0;
+    max-width: 100%;
+}
+.donation-info,
+.donation-form-section,
+.shop-card,
+.clinic-card {
+    overflow-wrap: anywhere;
+}
+@media (max-width: 480px) {
+    .donation-info,
+    .donation-form-section,
+    .shop-card {
+        padding: 1rem;
+    }
+    .auth-tabs,
+    .announcements-tabs {
+        display: flex;
+    }
+    .auth-tabs .auth-tab-btn,
+    .announcements-tabs .tab-btn {
+        flex: 1 1 0;
+        min-width: 0;
+        white-space: normal;
+        padding: 0.75rem 0.5rem;
+    }
+}
+@media (max-width: 360px) {
+    .logo {
+        white-space: normal;
+        font-size: 1.3rem;
+    }
 }
