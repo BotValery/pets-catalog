@@ -30,7 +30,15 @@ function cssUrl(value) {
     return String(value).replace(/['"()\\\s]/g, ch => '%' + ch.charCodeAt(0).toString(16).padStart(2, '0'));
 }
 
+// Адрес уменьшенной копии фото для карточек в списках:
+// /uploads/<id>.jpg -> /uploads/<id>_t.jpg (старые base64-фото возвращаются как есть)
+function thumbUrl(url) {
+    const m = typeof url === 'string' && url.match(/^\/uploads\/([a-f0-9]{32})(?:_t)?\.jpg$/);
+    return m ? '/uploads/' + m[1] + '_t.jpg' : url;
+}
+
 if (typeof window !== 'undefined') {
+    window.thumbUrl = thumbUrl;
     window.escapeHtml = escapeHtml;
     window.safeUrl = safeUrl;
     window.cssUrl = cssUrl;

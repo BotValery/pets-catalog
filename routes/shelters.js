@@ -1,6 +1,7 @@
 const express = require('express');
 const db = require('../config/database');
 const { authenticateToken, requireAdmin, isSelf } = require('../middleware/auth');
+const { removeFiles, parseStored } = require('../utils/photos');
 
 // Поля передержки без хеша пароля
 const SHELTER_FIELDS = 'id, shelterName, authorizedPerson, address, phone, viber, telegram, website, email, agreementAccepted, registeredAt';
@@ -128,7 +129,9 @@ router.delete('/:id', authenticateToken, async (req, res) => {
             );
             if (announcementsTable) {
                 await db.ensureColumn('announcements', 'userType', 'TEXT');
+                const shAnnPhotos = await db.all("SELECT photos FROM announcements WHERE userId = ? AND (userType IS NULL OR userType = 'shelter')", [shelterId]);
                 await db.run("DELETE FROM announcements WHERE userId = ? AND (userType IS NULL OR userType = 'shelter')", [shelterId]);
+                shAnnPhotos.forEach(r => removeFiles(parseStored(r.photos)));
             }
         } catch (error) {
             console.warn('Предупреждение при удалении объявлений:', error.message);
@@ -162,7 +165,9 @@ router.delete('/:id', authenticateToken, async (req, res) => {
                 "SELECT name FROM sqlite_master WHERE type='table' AND name='pets'"
             );
             if (petsTable) {
+                const shPetPhotos = await db.all('SELECT photos FROM pets WHERE shelterId = ?', [shelterId]);
                 await db.run('DELETE FROM pets WHERE shelterId = ?', [shelterId]);
+                shPetPhotos.forEach(r => removeFiles(parseStored(r.photos)));
             }
         } catch (error) {
             console.warn('Предупреждение при удалении питомцев:', error.message);

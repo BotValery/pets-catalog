@@ -114,6 +114,10 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 // Статические файлы (фронтенд)
 // ВАЖНО: наружу отдаются только файлы фронтенда из корня (html/css/js/картинки),
 // база данных, исходники сервера, ssl и .env недоступны
+// Фотографии животных и объявлений (имена файлов уникальны, поэтому кэшируются надолго)
+const { UPLOADS_DIR } = require('./utils/photos');
+app.use('/uploads', express.static(UPLOADS_DIR, { index: false, dotfiles: 'deny', immutable: true, maxAge: '365d' }));
+
 app.use(publicFilesOnly);
 app.use(express.static(path.join(__dirname), { dotfiles: 'deny', index: 'index.html' }));
 

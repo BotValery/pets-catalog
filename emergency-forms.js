@@ -572,7 +572,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             
             let imageHtml = `<div class="pet-image announcement-pet-image">${petType === 'dog' ? '🐕' : '🐱'}</div>`;
             if (hasPhotos) {
-                imageHtml = `<div class="pet-image announcement-pet-image" style="background-image: url('${escapeHtml(cssUrl(photos[0]))}'); background-size: cover; background-position: center;"></div>`;
+                imageHtml = `<div class="pet-image announcement-pet-image" style="background-image: url('${escapeHtml(cssUrl(thumbUrl(photos[0])))}'); background-size: cover; background-position: center;"></div>`;
             }
             
             return `
@@ -694,7 +694,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             
             let imageHtml = `<div class="pet-image announcement-pet-image">${petType === 'dog' ? '🐕' : '🐱'}</div>`;
             if (hasPhotos) {
-                imageHtml = `<div class="pet-image announcement-pet-image" style="background-image: url('${escapeHtml(cssUrl(photos[0]))}'); background-size: cover; background-position: center;"></div>`;
+                imageHtml = `<div class="pet-image announcement-pet-image" style="background-image: url('${escapeHtml(cssUrl(thumbUrl(photos[0])))}'); background-size: cover; background-position: center;"></div>`;
             }
             
             return `
@@ -835,7 +835,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 // Определяем изображение
                 let imageHtml = `<div class="pet-image announcement-pet-image">${petType === 'dog' ? '🐕' : '🐱'}</div>`;
                 if (hasPhotos) {
-                    imageHtml = `<div class="pet-image announcement-pet-image" style="background-image: url('${escapeHtml(cssUrl(photos[0]))}'); background-size: cover; background-position: center;"></div>`;
+                    imageHtml = `<div class="pet-image announcement-pet-image" style="background-image: url('${escapeHtml(cssUrl(thumbUrl(photos[0])))}'); background-size: cover; background-position: center;"></div>`;
                 }
                 
                 return `
@@ -980,7 +980,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 // Определяем изображение
                 let imageHtml = `<div class="pet-image announcement-pet-image">${petType === 'dog' ? '🐕' : '🐱'}</div>`;
                 if (hasPhotos) {
-                    imageHtml = `<div class="pet-image announcement-pet-image" style="background-image: url('${escapeHtml(cssUrl(photos[0]))}'); background-size: cover; background-position: center;"></div>`;
+                    imageHtml = `<div class="pet-image announcement-pet-image" style="background-image: url('${escapeHtml(cssUrl(thumbUrl(photos[0])))}'); background-size: cover; background-position: center;"></div>`;
                 }
                 
                 return `
@@ -1207,7 +1207,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (photos.length > 0) {
                 photoPreview.innerHTML = photos.map((photo, index) => `
                     <div class="photo-preview-item" data-photo-index="${index}">
-                        <img src="${escapeHtml(photo)}" alt="Фото ${index + 1}">
+                        <img src="${escapeHtml(thumbUrl(photo))}" alt="Фото ${index + 1}" loading="lazy">
                         <button type="button" class="remove-photo" onclick="removePhotoFromAnnouncement(${index}, '${isLost ? 'lost' : 'found'}')">×</button>
                     </div>
                 `).join('');

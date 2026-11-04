@@ -567,7 +567,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         let imageHtml = `<div class="pet-image">${escapeHtml(pet.icon || (pet.type === 'dog' ? '🐕' : '🐱'))}</div>`;
         if (pet.photos && pet.photos.length > 0) {
-            imageHtml = `<div class="pet-image" style="background-image: url('${escapeHtml(cssUrl(pet.photos[0]))}'); background-size: cover; background-position: center;"></div>`;
+            imageHtml = `<div class="pet-image" style="background-image: url('${escapeHtml(cssUrl(thumbUrl(pet.photos[0])))}'); background-size: cover; background-position: center;"></div>`;
         }
         
         // Статусы стерилизации
@@ -754,7 +754,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 if (pet.photos && pet.photos.length > 0) {
                     photoPreview.innerHTML = pet.photos.map((photo, index) => `
                         <div class="photo-preview-item" data-photo-index="${index}">
-                            <img src="${escapeHtml(photo)}" alt="Фото ${index + 1}">
+                            <img src="${escapeHtml(thumbUrl(photo))}" alt="Фото ${index + 1}" loading="lazy">
                             <button type="button" class="remove-photo" onclick="removePhotoFromEdit(${index})">×</button>
                         </div>
                     `).join('');

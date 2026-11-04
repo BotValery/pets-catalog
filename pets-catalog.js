@@ -406,7 +406,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         let imageHtml = `<div class="pet-image">${escapeHtml(pet.icon || (pet.type === 'dog' ? '🐕' : '🐱'))}</div>`;
         if (pet.photos && pet.photos.length > 0) {
             // Используем data-src для ленивой загрузки
-            const imageUrl = pet.photos[0];
+            const imageUrl = thumbUrl(pet.photos[0]);
             imageHtml = `<div class="pet-image lazy-image" data-src="${escapeHtml(imageUrl)}" style="background-size: cover; background-position: center; background-color: #f0f0f0;"></div>`;
         }
 
@@ -827,7 +827,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (pet.photos && pet.photos.length > 0) {
                 preview.innerHTML = pet.photos.map((photo, index) => `
                     <div class="photo-preview-item" data-photo-index="${index}">
-                        <img src="${escapeHtml(photo)}" alt="Фото ${index + 1}">
+                        <img src="${escapeHtml(thumbUrl(photo))}" alt="Фото ${index + 1}" loading="lazy">
                         <button type="button" class="remove-photo" onclick="removePhotoFromEdit(${index})">×</button>
                     </div>
                 `).join('');

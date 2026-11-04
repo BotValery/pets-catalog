@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 <div class="pet-photos-gallery">
                     ${pet.photos.map((photo, index) => `
                         <div class="pet-photo-item ${index === 0 ? 'active' : ''}">
-                            <img src="${escapeHtml(photo)}" alt="Фото ${escapeHtml(pet.name)} ${index + 1}">
+                            <img src="${escapeHtml(photo)}" alt="Фото ${escapeHtml(pet.name)} ${index + 1}" ${index === 0 ? '' : 'loading="lazy"'} decoding="async">
                         </div>
                     `).join('')}
                 </div>

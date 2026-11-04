@@ -203,7 +203,7 @@ function displayAdoptedPets(adoptedPets) {
         }
         
         if (photos.length > 0) {
-            imageHtml = `<img src="${escapeHtml(photos[0])}" alt="${escapeHtml(pet.name)}" class="adopted-pet-image">`;
+            imageHtml = `<img src="${escapeHtml(thumbUrl(photos[0]))}" alt="${escapeHtml(pet.name)}" class="adopted-pet-image" loading="lazy" decoding="async">`;
         }
         
         // Форматируем дату

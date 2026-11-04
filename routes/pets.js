@@ -2,6 +2,7 @@ const express = require('express');
 const { body, validationResult, query } = require('express-validator');
 const db = require('../config/database');
 const { authenticateToken, requireShelter } = require('../middleware/auth');
+const { storePhotos, removeFiles, removeReplaced, parseStored } = require('../utils/photos');
 
 const router = express.Router();
 
@@ -342,21 +343,11 @@ router.post('/', authenticateToken, requireShelter, [
             return res.status(404).json({ error: 'Передержка не найдена' });
         }
         
-        // Проверяем размер фотографий (SQLite TEXT может хранить до ~1GB, но лучше ограничить)
+        // Фотографии сохраняются файлами в /uploads, в базе — только адреса
         let photosJson = null;
-        if (photos && Array.isArray(photos) && photos.length > 0) {
-            try {
-                photosJson = JSON.stringify(photos);
-                // Проверяем размер (примерно 10MB для всех фотографий)
-                if (photosJson.length > 10 * 1024 * 1024) {
-                    return res.status(413).json({ 
-                        error: 'Размер фотографий слишком большой. Пожалуйста, уменьшите размер или количество фотографий.' 
-                    });
-                }
-            } catch (jsonError) {
-                console.error('Ошибка сериализации фотографий:', jsonError);
-                return res.status(400).json({ error: 'Неверный формат фотографий' });
-            }
+        if (Array.isArray(photos) && photos.length > 0) {
+            const stored = await storePhotos(photos);
+            photosJson = stored.length > 0 ? JSON.stringify(stored) : null;
         }
         
         const result = await db.run(
@@ -444,6 +435,14 @@ router.put('/:id', authenticateToken, requireShelter, async (req, res) => {
             foundLocation
         } = req.body;
 
+        // Новые фото сохраняются файлами; убранные при редактировании — удаляются
+        let photosJson = null;
+        if (Array.isArray(photos)) {
+            const stored = await storePhotos(photos);
+            photosJson = JSON.stringify(stored);
+            removeReplaced(pet.photos, stored);
+        }
+
         await db.run(
             `UPDATE pets SET 
                 name = COALESCE(?, name),
@@ -464,7 +463,7 @@ router.put('/:id', authenticateToken, requireShelter, async (req, res) => {
             [
                 name, breed, age, ageYears, ageMonths, ageCategory,
                 gender, size, color, character, description,
-                photos ? JSON.stringify(photos) : null,
+                photosJson,
                 comments, foundLocation,
                 req.params.id
             ]
@@ -491,6 +490,7 @@ router.delete('/:id', authenticateToken, requireShelter, async (req, res) => {
         }
 
         await db.run('DELETE FROM pets WHERE id = ?', [req.params.id]);
+        removeFiles(parseStored(pet.photos));
 
         res.json({ message: 'Питомец удален' });
     } catch (error) {

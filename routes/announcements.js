@@ -2,6 +2,7 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const db = require('../config/database');
 const { authenticateToken } = require('../middleware/auth');
+const { storePhotos, removeFiles, removeReplaced } = require('../utils/photos');
 
 const router = express.Router();
 
@@ -179,6 +180,9 @@ router.post('/', authenticateToken, [
             gender
         } = req.body;
 
+        // Фотографии сохраняются файлами в /uploads, в базе — только адреса
+        const storedPhotos = Array.isArray(photos) ? await storePhotos(photos) : [];
+
         const result = await db.run(
             `INSERT INTO announcements (type, name, type_animal, breed, color, size, location, date, description, contact, photos, age, gender, userId, userType)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -193,7 +197,7 @@ router.post('/', authenticateToken, [
                 date || null,
                 description || null,
                 contact || null,
-                photos ? JSON.stringify(photos) : null,
+                storedPhotos.length > 0 ? JSON.stringify(storedPhotos) : null,
                 age || null,
                 gender || null,
                 req.user.id,
@@ -275,6 +279,14 @@ router.put('/:id', authenticateToken, [
             gender
         } = req.body;
 
+        // Новые фото сохраняются файлами; убранные при редактировании — удаляются
+        let photosJson = null;
+        if (Array.isArray(photos)) {
+            const stored = await storePhotos(photos);
+            photosJson = JSON.stringify(stored);
+            removeReplaced(announcement.photos, stored);
+        }
+
         await db.run(
             `UPDATE announcements SET 
                 name = COALESCE(?, name),
@@ -293,7 +305,7 @@ router.put('/:id', authenticateToken, [
             [
                 name, type_animal, breed, color, size, location, date,
                 description, contact,
-                photos ? JSON.stringify(photos) : null,
+                photosJson,
                 age, gender,
                 req.params.id
             ]
@@ -330,6 +342,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
         }
 
         await db.run('DELETE FROM announcements WHERE id = ?', [req.params.id]);
+        removeFiles(parseJsonArray(announcement.photos));
 
         res.json({ message: 'Объявление удалено' });
     } catch (error) {

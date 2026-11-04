@@ -1,6 +1,7 @@
 const express = require('express');
 const db = require('../config/database');
 const { authenticateToken, requireAdmin, isSelf } = require('../middleware/auth');
+const { removeFiles, parseStored } = require('../utils/photos');
 
 const router = express.Router();
 
@@ -90,7 +91,9 @@ router.delete('/:id', authenticateToken, async (req, res) => {
 
         // Удаляем все объявления пользователя
         await db.ensureColumn('announcements', 'userType', 'TEXT');
+        const userAnnPhotos = await db.all("SELECT photos FROM announcements WHERE userId = ? AND (userType IS NULL OR userType = 'user')", [userId]);
         await db.run("DELETE FROM announcements WHERE userId = ? AND (userType IS NULL OR userType = 'user')", [userId]);
+        userAnnPhotos.forEach(r => removeFiles(parseStored(r.photos)));
 
         // Удаляем заявки пользователя (если есть)
         await db.run('DELETE FROM applications WHERE userId = ?', [userId]);
