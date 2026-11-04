@@ -134,8 +134,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     const foundPhotoPreview = document.getElementById('foundPhotoPreview');
     // Редактор обложки карточки (первое фото)
     if (window.PhotoCover) {
-        if (lostPetForm && lostPhotos) PhotoCover.attach(lostPetForm, lostPhotos);
-        if (foundPetForm && foundPhotos) PhotoCover.attach(foundPetForm, foundPhotos);
+        if (lostPetForm && lostPhotos) PhotoCover.attach(lostPetForm, lostPhotos, lostPhotoPreview);
+        if (foundPetForm && foundPhotos) PhotoCover.attach(foundPetForm, foundPhotos, foundPhotoPreview);
     }
     const dateFilterFrom = document.getElementById('dateFilterFrom');
     const dateFilterTo = document.getElementById('dateFilterTo');
@@ -235,50 +235,10 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     // Обработчик предпросмотра фотографий для формы "Потерялся"
-    if (lostPhotos && lostPhotoPreview) {
-        lostPhotos.addEventListener('change', function(e) {
-            lostPhotoPreview.innerHTML = '';
-            const files = e.target.files;
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const img = document.createElement('img');
-                    img.src = e.target.result;
-                    img.style.width = '100px';
-                    img.style.height = '100px';
-                    img.style.objectFit = 'cover';
-                    img.style.borderRadius = '8px';
-                    img.style.margin = '5px';
-                    lostPhotoPreview.appendChild(img);
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-    }
+    // Превью выбранных фото с кнопками «×» рисует photo-editor.js (PhotoCover.attach)
 
     // Обработчик предпросмотра фотографий для формы "Найден"
-    if (foundPhotos && foundPhotoPreview) {
-        foundPhotos.addEventListener('change', function(e) {
-            foundPhotoPreview.innerHTML = '';
-            const files = e.target.files;
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const img = document.createElement('img');
-                    img.src = e.target.result;
-                    img.style.width = '100px';
-                    img.style.height = '100px';
-                    img.style.objectFit = 'cover';
-                    img.style.borderRadius = '8px';
-                    img.style.margin = '5px';
-                    foundPhotoPreview.appendChild(img);
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-    }
+    // Превью выбранных фото с кнопками «×» рисует photo-editor.js (PhotoCover.attach)
 
     // Обработчик формы "Мой питомец потерялся"
     if (lostPetForm) {

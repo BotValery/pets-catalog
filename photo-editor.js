@@ -1,11 +1,14 @@
-// Редактор обложки карточки (первое фото животного или объявления).
-// Подключение к форме:   PhotoCover.attach(form, fileInput)
+// Фото в формах размещения: список выбранных фото с кнопкой «×» и редактор обложки карточки.
+// Подключение к форме:   PhotoCover.attach(form, fileInput, previewElement)
+//   — новые фото добавляются к уже выбранным (а не заменяют их), у каждого фото есть «×»,
+//     сохранённые (при редактировании) и новые фото показываются вместе, первое — обложка.
 // Перед отправкой:       photos = PhotoCover.apply(form, photos)
 //   — первый элемент превращается в { src, crop, rotate }, если обложку настраивали.
 // Если обложку не настраивали, сервер выберет кадр автоматически.
 // Нужны cropper.min.js и cropper.min.css (Cropper.js, MIT).
 (function () {
     const ASPECT = 4 / 3;
+    const MAX_PHOTOS = 10;
 
     function el(tag, attrs = {}, children = []) {
         const node = document.createElement(tag);
@@ -130,8 +133,83 @@
         });
     }
 
+    // ---------- Список фото с кнопками удаления ----------
+    function getExisting(form) {
+        try { const a = JSON.parse(form.dataset.existingPhotos || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; }
+    }
+
+    function setupPicker(form, input, preview, onChange) {
+        const canEditFiles = typeof DataTransfer !== 'undefined';
+        const urls = new WeakMap(); // File -> objectURL для превью
+        form._newFiles = [];
+
+        function syncInput() {
+            if (!canEditFiles) return;
+            const dt = new DataTransfer();
+            form._newFiles.forEach(f => dt.items.add(f));
+            input.files = dt.files;
+        }
+        function fileUrl(f) {
+            if (!urls.has(f)) urls.set(f, URL.createObjectURL(f));
+            return urls.get(f);
+        }
+        function item(src, label, onRemove, isCover) {
+            const remove = el('button', { type: 'button', class: 'remove-photo', title: 'Убрать фото', 'aria-label': 'Убрать фото ' + label, text: '×' });
+            remove.addEventListener('click', onRemove);
+            const node = el('div', { class: 'photo-preview-item' + (isCover ? ' is-cover' : '') }, [
+                el('img', { src, alt: label, loading: 'lazy' }), remove
+            ]);
+            if (isCover) node.appendChild(el('span', { class: 'pe-cover-badge', text: 'Обложка' }));
+            return node;
+        }
+        function render() {
+            const existing = getExisting(form);
+            preview.innerHTML = '';
+            let n = 0;
+            existing.forEach((url, i) => {
+                const src = typeof thumbUrl === 'function' ? thumbUrl(url) : url;
+                preview.appendChild(item(src, 'Фото ' + (n + 1), () => {
+                    const list = getExisting(form);
+                    list.splice(i, 1);
+                    form.dataset.existingPhotos = JSON.stringify(list); // наблюдатель перерисует
+                }, n === 0));
+                n++;
+            });
+            form._newFiles.forEach((f, i) => {
+                preview.appendChild(item(fileUrl(f), 'Фото ' + (n + 1), () => {
+                    form._newFiles.splice(i, 1);
+                    syncInput();
+                    render();
+                    onChange();
+                }, n === 0));
+                n++;
+            });
+        }
+
+        input.addEventListener('change', () => {
+            const picked = Array.from(input.files || []).filter(f => f.type.startsWith('image/'));
+            if (!canEditFiles) { form._newFiles = picked; render(); return; }
+            const known = new Set(form._newFiles.map(fileKey));
+            const room = Math.max(0, MAX_PHOTOS - getExisting(form).length - form._newFiles.length);
+            const fresh = picked.filter(f => !known.has(fileKey(f)));
+            if (fresh.length > room && typeof NotificationSystem !== 'undefined') {
+                NotificationSystem.warning(`Можно не больше ${MAX_PHOTOS} фото — лишние не добавлены`);
+            }
+            form._newFiles = form._newFiles.concat(fresh.slice(0, room));
+            syncInput();
+            render();
+        });
+        // при открытии другой записи на редактирование выбранные новые фото сбрасываются
+        new MutationObserver(muts => {
+            if (muts.some(m => m.attributeName === 'data-edit-id')) { form._newFiles = []; syncInput(); }
+            render();
+        }).observe(form, { attributes: true, attributeFilter: ['data-existing-photos', 'data-edit-id'] });
+        form.addEventListener('reset', () => { form._newFiles = []; setTimeout(() => { syncInput(); render(); }, 0); });
+        render();
+    }
+
     // ---------- Блок «Обложка» в форме ----------
-    function attach(form, input) {
+    function attach(form, input, preview) {
         if (!form || !input || form._coverAttached) return;
         form._coverAttached = true;
         form._cover = null; // { key, crop, rotate, preview }
@@ -139,6 +217,10 @@
         const thumb = el('div', { class: 'pe-cover-thumb' });
         const hint = el('div', { class: 'pe-cover-hint' });
         const button = el('button', { type: 'button', class: 'btn-secondary pe-cover-btn', text: '✂️ Настроить обложку' });
+        // список фото (обработчик выбора файлов регистрируется раньше, чем у обложки)
+        let renderCover = () => {};
+        if (preview) setupPicker(form, input, preview, () => renderCover());
+
         const block = el('div', { class: 'pe-cover', hidden: '' }, [
             thumb, el('div', { class: 'pe-cover-side' }, [el('strong', { text: 'Обложка карточки' }), hint, button])
         ]);
@@ -169,6 +251,8 @@
                 (src.saved ? 'Так выглядит сейчас в каталоге' : 'Кадр подберётся автоматически — или настройте сами');
         }
 
+        renderCover = render;
+
         async function edit() {
             const src = currentSource(form, input);
             if (!src) return;
@@ -178,16 +262,18 @@
         }
         button.addEventListener('click', edit);
 
-        // новый файл стал обложкой — сразу предлагаем кадрировать
+        // новый файл стал обложкой — один раз сами предлагаем его кадрировать
         input.addEventListener('change', () => {
-            const before = form._cover && form._cover.key;
             render();
             const src = currentSource(form, input);
-            if (src && !src.saved && src.key !== before) setTimeout(edit, 150);
+            if (src && !src.saved && src.key !== form._coverOffered) {
+                form._coverOffered = src.key;
+                setTimeout(edit, 150);
+            }
         });
         // обложка меняется при загрузке записи на редактирование, удалении фото и сбросе формы
         new MutationObserver(render).observe(form, { attributes: true, attributeFilter: ['data-existing-photos'] });
-        form.addEventListener('reset', () => { form._cover = null; setTimeout(render, 0); });
+        form.addEventListener('reset', () => { form._cover = null; form._coverOffered = null; setTimeout(render, 0); });
         render();
     }
 

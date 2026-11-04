@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     const petPhotos = document.getElementById('petPhotos');
     const photoPreview = document.getElementById('photoPreview');
     // Редактор обложки карточки (первое фото)
-    if (window.PhotoCover && addPetForm && petPhotos) PhotoCover.attach(addPetForm, petPhotos);
+    if (window.PhotoCover && addPetForm && petPhotos) PhotoCover.attach(addPetForm, petPhotos, photoPreview);
     const dashboardTabs = document.querySelectorAll('.dashboard-tab');
     const tabContents = document.querySelectorAll('.dashboard-tab-content');
     const applicationsContainer = document.getElementById('applicationsContainer');
@@ -241,27 +241,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     // Обработчик предпросмотра фотографий
-    if (petPhotos) {
-        petPhotos.addEventListener('change', function(e) {
-            photoPreview.innerHTML = '';
-            const files = e.target.files;
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const img = document.createElement('img');
-                    img.src = e.target.result;
-                    img.style.width = '100px';
-                    img.style.height = '100px';
-                    img.style.objectFit = 'cover';
-                    img.style.borderRadius = '8px';
-                    img.style.margin = '5px';
-                    photoPreview.appendChild(img);
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-    }
+    // Превью выбранных фото с кнопками «×» рисует photo-editor.js (PhotoCover.attach)
 
     // Загрузка заявок
     async function loadApplications() {
