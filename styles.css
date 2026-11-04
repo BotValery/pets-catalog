@@ -3757,3 +3757,21 @@ html {
         font-size: 1.3rem;
     }
 }
+
+/* Объявления на телефонах и планшетах: карточки на всю ширину (1 колонка), на планшете — 2 */
+@media (max-width: 768px) {
+    .announcements-list,
+    #lostAnnouncements,
+    #foundAnnouncements {
+        grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr)) !important;
+        justify-content: stretch !important;
+    }
+    #lostAnnouncements .pet-card,
+    #foundAnnouncements .pet-card,
+    .announcements-list .pet-card,
+    #lostAnnouncements .announcement-pet-card,
+    #foundAnnouncements .announcement-pet-card,
+    .announcements-list .announcement-pet-card {
+        max-width: none !important;
+    }
+}
