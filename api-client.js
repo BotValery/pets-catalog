@@ -593,3 +593,46 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
         }).catch(() => {});
     });
 }
+
+// ---------------------------------------------------------------------------
+// Возврат к тому же месту списка после просмотра карточки животного.
+// remember() — перед переходом в карточку; take() — при возврате (кнопка «Назад» браузера
+// или ссылка «Назад» на странице животного); scrollTo() — прокрутить к той же карточке.
+// ---------------------------------------------------------------------------
+const ScrollReturn = {
+    KEY: 'scrollReturn',
+    MAX_AGE: 2 * 60 * 60 * 1000,
+    remember(page, card, extra) {
+        try {
+            sessionStorage.setItem(this.KEY, JSON.stringify({
+                page, id: card && card.dataset ? card.dataset.petId : null,
+                offset: card ? Math.round(card.getBoundingClientRect().top) : 0,
+                y: Math.round(window.scrollY), extra: extra || null, t: Date.now()
+            }));
+        } catch (e) {}
+    },
+    // Вернуть сохранённое место, только если мы действительно вернулись со страницы животного
+    take(page) {
+        let state = null;
+        try { state = JSON.parse(sessionStorage.getItem(this.KEY) || 'null'); } catch (e) {}
+        if (!state || state.page !== page || Date.now() - state.t > this.MAX_AGE) return null;
+        const nav = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
+        const cameBack = (nav && nav.type === 'back_forward') || /pet-detail\.html/.test(document.referrer);
+        try { sessionStorage.removeItem(this.KEY); } catch (e) {}
+        return cameBack ? state : null;
+    },
+    scrollTo(state, root) {
+        if (!state) return;
+        const go = () => {
+            const card = state.id && (root || document).querySelector(`[data-pet-id="${CSS.escape(String(state.id))}"]`);
+            const y = card ? card.getBoundingClientRect().top + window.scrollY - state.offset : state.y;
+            window.scrollTo(0, Math.max(0, y));
+        };
+        requestAnimationFrame(() => { go(); setTimeout(go, 300); }); // второй раз — после догрузки шрифтов и картинок
+    }
+};
+if (typeof window !== 'undefined') {
+    window.ScrollReturn = ScrollReturn;
+    // страница достана из кэша браузера целиком — прокрутка уже на месте, сохранённое не нужно
+    window.addEventListener('pageshow', e => { if (e.persisted) { try { sessionStorage.removeItem(ScrollReturn.KEY); } catch (err) {} } });
+}

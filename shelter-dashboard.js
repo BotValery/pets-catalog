@@ -1,5 +1,6 @@
 // Инициализация панели передержки
 document.addEventListener('DOMContentLoaded', async function() {
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
     // Проверяем авторизацию
     const currentUser = AuthSystem.getCurrentUser();
     if (!currentUser || currentUser.type !== 'shelter') {
@@ -507,7 +508,13 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     function renderAdoptedPets() {
-        const filterValue = adoptedSterilizationFilter ? adoptedSterilizationFilter.value : 'all';
+        // Значение не из списка (браузер при возврате мог подставить чужое) — считаем «Все»
+        let filterValue = adoptedSterilizationFilter ? adoptedSterilizationFilter.value : 'all';
+        if (adoptedSterilizationFilter && ![...adoptedSterilizationFilter.options].some(o => o.value === filterValue && o.value !== '')) {
+            filterValue = 'all';
+            adoptedSterilizationFilter.value = 'all';
+            adoptedSterilizationFilter.dispatchEvent(new Event('change'));
+        }
         const pets = adoptedPetsCache.filter(pet => filterValue === 'all' || pet.sterilizationStatus === filterValue);
 
         if (pets.length === 0) {
@@ -544,6 +551,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Создание карточки питомца
     function createPetCard(pet, isAdopted) {
         const card = document.createElement('div');
+        card.dataset.petId = pet.id;
         card.className = 'pet-card';
         
         const ageText = getAgeText(pet.age, pet.ageYears, pet.ageMonths);
@@ -580,7 +588,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 </div>
                 <div style="margin-top: 0.5rem;">
                     <label style="font-size: 0.9rem; color: #666; display: block; margin-bottom: 0.25rem;">Статус:</label>
-                    <select class="adopt-status-select" data-pet-id="${escapeHtml(pet.id)}" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9rem; margin-bottom: 0.5rem;">
+                    <select class="adopt-status-select" autocomplete="off" data-pet-id="${escapeHtml(pet.id)}" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9rem; margin-bottom: 0.5rem;">
                         <option value="false" ${!isAdopted ? 'selected' : ''}>Не отдан</option>
                         <option value="true" ${isAdopted ? 'selected' : ''}>Отдан</option>
                     </select>
@@ -589,7 +597,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     <p style="color: #48bb78; font-weight: bold; margin-top: 0.5rem;">✅ Отдан</p>
                     <div style="margin-top: 0.5rem;">
                         <label style="font-size: 0.9rem; color: #666; display: block; margin-bottom: 0.25rem;">Статус стерилизации:</label>
-                        <select class="sterilization-status-select" data-pet-id="${escapeHtml(pet.id)}" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9rem;">
+                        <select class="sterilization-status-select" autocomplete="off" data-pet-id="${escapeHtml(pet.id)}" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9rem;">
                             <option value="">Не указано</option>
                             <option value="sterilized" ${currentSterilizationStatus === 'sterilized' ? 'selected' : ''}>Стерелизована</option>
                             <option value="will_sterilize" ${currentSterilizationStatus === 'will_sterilize' ? 'selected' : ''}>Сами стерилизуют</option>
@@ -650,6 +658,8 @@ document.addEventListener('DOMContentLoaded', async function() {
                 !e.target.closest('.custom-select-dropdown') &&
                 !e.target.closest('.custom-select-options') &&
                 !e.target.closest('.custom-select-option')) {
+                const activeTab = document.querySelector('.dashboard-tab.active');
+                if (window.ScrollReturn) ScrollReturn.remember('dashboard', card, { tab: activeTab ? activeTab.dataset.tab : null });
                 window.location.href = `pet-detail.html?id=${encodeURIComponent(pet.id)}`;
             }
         });
@@ -842,5 +852,15 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Инициализация
     await updateStats();
     await loadMyPets();
+
+    // Вернулись из карточки животного — открываем ту же вкладку и прокручиваем к той же карточке
+    const backState = window.ScrollReturn && ScrollReturn.take('dashboard');
+    if (backState && backState.extra && backState.extra.tab) {
+        const tab = backState.extra.tab;
+        dashboardTabs.forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+        tabContents.forEach(c => c.classList.toggle('active', c.id === tab + '-tab'));
+        if (tab === 'adopted') await loadAdoptedPets();
+        ScrollReturn.scrollTo(backState, document.getElementById(tab + '-tab'));
+    }
 });
 

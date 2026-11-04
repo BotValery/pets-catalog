@@ -1,5 +1,7 @@
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', async function() {
+    // Прокрутку при возврате восстанавливаем сами — после того как карточки загрузятся
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
     // Проверяем подключение к API
     try {
         await apiClient.request('/health');
@@ -45,6 +47,19 @@ document.addEventListener('DOMContentLoaded', async function() {
     ageFilter.addEventListener('change', filterPets);
     genderFilter.addEventListener('change', filterPets);
     sizeFilter.addEventListener('change', filterPets);
+
+    // Вернулись из карточки животного — восстанавливаем фильтры и место в списке.
+    // Фильтры сверяем всегда: при возврате браузер сам подставляет прежние значения в списки,
+    // но не сообщает об этом — без сверки выдача и подписи фильтров расходились.
+    const backState = window.ScrollReturn && ScrollReturn.take('catalog');
+    const saved = (backState && backState.extra) || {};
+    [[typeFilter, saved.type], [ageFilter, saved.age], [genderFilter, saved.gender], [sizeFilter, saved.size]].forEach(([el, v]) => {
+        if (!el) return;
+        if (v && [...el.options].some(o => o.value === v)) el.value = v;
+        el.dispatchEvent(new Event('change')); // обновит подпись выпадающего списка
+    });
+    await filterPets();
+    if (backState) ScrollReturn.scrollTo(backState, petsGrid);
 
     // Обработчик для кнопки сброса фильтров
     resetBtn.addEventListener('click', function() {
@@ -377,6 +392,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     function createPetCard(pet) {
         const card = document.createElement('div');
         card.className = 'pet-card';
+        card.dataset.petId = pet.id;
 
         // Используем годы и месяцы если они есть, иначе вычисляем из age
         const ageText = getAgeText(pet.age, pet.ageYears, pet.ageMonths);
@@ -420,6 +436,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Делаем всю карточку кликабельной для перехода на страницу деталей (кроме кнопок)
         card.addEventListener('click', function(e) {
             if (!e.target.closest('.pet-card-actions')) {
+                if (window.ScrollReturn) ScrollReturn.remember('catalog', card, {
+                    type: typeFilter.value, age: ageFilter.value, gender: genderFilter.value, size: sizeFilter.value
+                });
                 window.location.href = `pet-detail.html?id=${encodeURIComponent(pet.id)}`;
             }
         });

@@ -99,7 +99,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         petDetailContainer.innerHTML = `
             <div class="pet-detail-card">
                 <div class="pet-detail-header">
-                    <a href="take-pet.html" class="back-link">← Назад к каталогу</a>
+                    <a href="take-pet.html" class="back-link" onclick="return goBackToList(event)">← Назад</a>
                     <h2>${escapeHtml(pet.name)}</h2>
                 </div>
                 
@@ -346,3 +346,16 @@ document.addEventListener('DOMContentLoaded', async function() {
     };
 });
 
+// «← Назад»: если пришли со страницы этого сайта (каталог, кабинет), возвращаемся по истории —
+// так открывается то же место списка. Иначе (открыли по прямой ссылке) — переходим в каталог.
+function goBackToList(e) {
+    let sameSite = false;
+    try { sameSite = document.referrer && new URL(document.referrer).origin === location.origin; } catch (err) {}
+    if (sameSite && history.length > 1) {
+        e.preventDefault();
+        history.back();
+        return false;
+    }
+    return true;
+}
+window.goBackToList = goBackToList;
